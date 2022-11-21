@@ -1,0 +1,6 @@
+[submodule "object_detection/models"]
+	path = object_detection/models
+	url = https://github.com/Caterina1996/models
+[submodule "semantic_segmentation/SS_Halimeda"]
+	path = semantic_segmentation/SS_Halimeda
+	url = https://github.com/srv/SS_Halimeda
