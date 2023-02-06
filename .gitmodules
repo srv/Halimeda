@@ -4,3 +4,6 @@
 [submodule "semantic_segmentation/SS_Halimeda"]
 	path = semantic_segmentation/SS_Halimeda
 	url = https://github.com/srv/SS_Halimeda
+[submodule "object_detection/yolov5"]
+	path = object_detection/yolov5
+	url = https://github.com/Caterina1996/yolov5.git
