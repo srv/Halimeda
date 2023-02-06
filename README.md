@@ -9,5 +9,11 @@ To clone the repository do:
 
 git clone --recursive https://github.com/srv/Halimeda.git
 
+### Object detection enviroment installation:
+
+cd object_detection
+
+conda create -n <environment-name> --file object_req.txt
+
 
 
