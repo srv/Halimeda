@@ -3,10 +3,12 @@ import cv2
 import sys
 import argparse
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 from numpy import trapz
 from natsort import natsorted
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import cm
 from scipy.integrate import simpson
 
 parser = argparse.ArgumentParser()
@@ -15,21 +17,22 @@ parser.add_argument('--od_thr', help='semantic segmentation gray scale thr.', ty
 parser.add_argument('--path_ss', help='path to the ss output folder.', type=str)
 parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=float, default=100)
 parser.add_argument('--metric_thr', help='semantic segmentation gray scale thr.', type=float, default=0.6)
-parser.add_argument("--od_thr_list", nargs="+", default=[0.5], type=float, help ='confidece threshold list')
 parser.add_argument('--path_merge', help='path to merge folder', type=str)
 parsed_args = parser.parse_args(sys.argv[1:])
 
 ss_thr = parsed_args.ss_thr
 od_thr = parsed_args.od_thr
 metric_thr = parsed_args.metric_thr
-od_thr_list = parsed_args.od_thr_list
 path_od = parsed_args.path_od
 path_ss = parsed_args.path_ss
 path_merge = parsed_args.path_merge  # get class txt path
 
+plot= False
+hist = True
+
 """
 CALL: 
-python merge_outs_2.py --path_od path/to/od/preds --path_ss path/to/ss/preds --ss_thr 100 --od_thr_list 0.1 0.3 0.5 --path_merge path/to/output/folder
+python merge_outs_2.py --path_od path/to/od/preds --path_ss path/to/ss/preds --ss_thr 100 --path_merge path/to/output/folder
 
 """
 od_thr = 0.8
@@ -46,6 +49,10 @@ def main():
         print("¡PREDS NOT SAME LENGTH!")
         exit()
 
+    cov_list_list = list()
+    n_list_list = list()
+    sum_list_list = list()
+
     for idx in range(len(list_od)):
 
         print("working on:" + list_od[idx])
@@ -57,11 +64,8 @@ def main():
         image_ss_gray = cv2.imread(file_path_ss, cv2.IMREAD_GRAYSCALE)  # read ss image
         instances_od = getInstances(file_path_od, image_ss_gray.shape)  # read od predictions
 
-        
         # NMS OF HIGHLY SIMILAR BBOX
         # instances_od_nms = nms(instances_od, 0.9)
-
-
 
         # INIT FINAL COVERAGE LABEL MAP
         cov_merged = np.zeros(image_ss_gray.shape, dtype="uint8")
@@ -73,7 +77,7 @@ def main():
                 (left, top, right, bottom) = (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
                 for j in range(top, bottom):
                     for k in range(left, right):
-                        cov_merged[j, k] = 1
+                        cov_merged[j, k] = 1 # 255 * instance[1]
 
         # BINARIZE SEMANTIC RPEDS
         image_ss_bw = cv2.threshold(image_ss_gray, ss_thr, 255, cv2.THRESH_BINARY)[1]
@@ -91,31 +95,120 @@ def main():
         print("filtering blobs")
         for i in range(1, n_labels):
             area = values[i, cv2.CC_STAT_AREA]  
-            if area<250:
+            if area<20:
                 label_map[np.where(label_map==i)]=0
 
         # VALIDATE BLOBS
         print("validating blobs")
-        for i in range(1, np.max(label_map)+1):
-            print("working on blob " + str(i) + "/" + str(np.max(label_map)))
+        
+        blob_set = set(label_map.flat)
+        blob_set.pop()
+
+        for idx, i in enumerate(blob_set): # TODO CHANGE A QUE I SOLO SEA LOS NUMEROS DE LSO BLOBS QUE HAN SOBREVIVIDO AL FILTERING
+            print("working on blob " + str(idx+1) + "/" + str(len(blob_set)))
             blob_map = np.zeros(image_ss_gray.shape, dtype="uint8")
             blob_map[np.where(label_map==i)]=1
-            auc, n_list, sum_list = get_validation(blob_map, instances_od)
-            print(auc)
-            print(n_list)
-            print(sum_list)
+            cov_list, n_list, sum_list = get_validation(blob_map, instances_od)
 
+            auc = trapz(cov_list, dx=1)   # https://i.ytimg.com/vi/9wz7djdke-U/maxresdefault.jpg
+
+            cov_list_list.append(cov_list)
+            n_list_list.append(n_list)
+            sum_list_list.append(sum_list)
+
+            #OUTPUT
             metric = auc + len(n_list) + len(sum_list) # calcular metrica definitiva a partir de auc y la lista de confidences en box ESTA METRIC LA PUEDE SACAR DIRECTAMENTE GET_VALIDATION..
             if metric>metric_thr:
-                cov_merged[np.where(blob_map==i)]=1
-        
+                cov_merged[np.where(blob_map==i)]= 1 # cov_merged[np.where(blob_map==i)]+ 255 * metric
+            
+            # np.clip(cov_merged,0,255)
+
         #PRINTS
-        if True == True:
+        if plot == True:
             cv2.imshow("image", image_ss_gray)
             cv2.imshow("binarization",image_ss_bw)
             cv2.imshow("Erosion", erosion)
             cv2.imshow("Dilation", dilation)
             plt.imshow(label_map, interpolation='none')
+            plt.show()
+            cv2.waitKey()
+
+    # HISTOGRAM
+    if hist == True:
+        #generate histograms
+        covs = np.zeros([100,1], dtype="float")
+        ns = np.zeros([100,1], dtype="float")
+        sums = np.zeros([100,1], dtype="float")
+
+        for i in range(len(cov_list_list)):
+            cov = np.array([cov_list_list[i]]).T
+            n = np.array([n_list_list[i]]).T
+            sum = np.array([sum_list_list[i]]).T
+
+            covs = np.hstack((covs,cov))
+            ns = np.hstack((ns,n))
+            sums = np.hstack((sums,sum))
+
+        covs = covs[:,1:]
+        ns = ns[:,1:]
+        sums = sums[:,1:]
+
+        alls = np.hstack((covs,ns,sums))
+
+        df = pd.DataFrame (covs)
+        filepath = 'covs.xlsx'
+        df.to_excel(filepath, index=False)
+        df = pd.DataFrame (ns)
+        filepath = 'ns.xlsx'
+        df.to_excel(filepath, index=False)
+        df = pd.DataFrame (sums)
+        filepath = 'sums.xlsx'
+        df.to_excel(filepath, index=False)
+        df = pd.DataFrame (alls)
+        filepath = 'alls.xlsx'
+        df.to_excel(filepath, index=False)
+
+
+        if plot == True:
+
+            for i in range (99,-1,-1):
+                covs[i,...] = covs[i,...]-covs[i-1,...] 
+                ns[i,...] = ns[i,...]-ns[i-1,...] 
+                sums[i,...] = sums[i,...]-sums[i-1,...] 
+
+            colors = iter(cm.rainbow(np.linspace(0, 1, 100)))
+            for i in range (0,100,1):
+                cov = covs[i,...]
+                blobs = range(covs.shape[1])
+                c = next(colors)
+                plt.bar(blobs, cov, color=c)
+            plt.xlabel("Blob")
+            plt.ylabel("coverage")
+            plt.title("coverage by thr per blob")
+            plt.show()
+            cv2.waitKey()
+
+            colors = iter(cm.rainbow(np.linspace(0, 1, 100)))
+            for i in range (0,100,1):
+                n = ns[i,...]
+                blobs = range(ns.shape[1])
+                c = next(colors)
+                plt.bar(blobs, n, color=c)
+            plt.xlabel("Blob")
+            plt.ylabel("coverage")
+            plt.title("coverage by thr per blob")
+            plt.show()
+            cv2.waitKey()
+
+            colors = iter(cm.rainbow(np.linspace(0, 1, 100)))
+            for i in range (0,100,1):
+                sum = sums[i,...]
+                blobs = range(sums.shape[1])
+                c = next(colors)
+                plt.bar(blobs, sum, color=c)
+            plt.xlabel("Blob")
+            plt.ylabel("coverage")
+            plt.title("coverage by thr per blob")
             plt.show()
             cv2.waitKey()
 
@@ -150,7 +243,7 @@ def get_validation(blob, instances):
     n_list = list()
     sum_list = list()
 
-    for thr in tqdm(range(1,100,1)):
+    for thr in tqdm(range(0,100,1)):
 
         inst_thr= list()
         for inst in inst_blob:
@@ -163,10 +256,8 @@ def get_validation(blob, instances):
 
         cov = get_coverage(blob,inst_thr)
         cov_list.append(cov)
-        print(cov)
 
-    auc = trapz(cov_list, dx=1)   # https://i.ytimg.com/vi/9wz7djdke-U/maxresdefault.jpg
-    return auc, n_list, sum_list
+    return cov_list, n_list, sum_list
 
 
 def get_coverage(map, instances):
