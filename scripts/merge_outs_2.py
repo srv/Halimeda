@@ -1,6 +1,7 @@
 import os
 import cv2
 import sys
+import copy
 import argparse
 import numpy as np
 import pandas as pd
@@ -95,7 +96,7 @@ def main():
         print("filtering blobs")
         for i in range(1, n_labels):
             area = values[i, cv2.CC_STAT_AREA]  
-            if area<20:
+            if area<200:
                 label_map[np.where(label_map==i)]=0
 
         # VALIDATE BLOBS
@@ -156,61 +157,20 @@ def main():
         alls = np.hstack((covs,ns,sums))
 
         df = pd.DataFrame (covs)
-        filepath = 'covs.xlsx'
+        filepath = os.path.join(path_merge, 'covs.xlsx')
         df.to_excel(filepath, index=False)
+
         df = pd.DataFrame (ns)
-        filepath = 'ns.xlsx'
+        filepath = os.path.join(path_merge, 'ns.xlsx')
         df.to_excel(filepath, index=False)
+
         df = pd.DataFrame (sums)
-        filepath = 'sums.xlsx'
+        filepath = os.path.join(path_merge, 'sums.xlsx')
         df.to_excel(filepath, index=False)
+
         df = pd.DataFrame (alls)
-        filepath = 'alls.xlsx'
+        filepath = os.path.join(path_merge, 'alls.xlsx')
         df.to_excel(filepath, index=False)
-
-
-        if plot == True:
-
-            for i in range (99,-1,-1):
-                covs[i,...] = covs[i,...]-covs[i-1,...] 
-                ns[i,...] = ns[i,...]-ns[i-1,...] 
-                sums[i,...] = sums[i,...]-sums[i-1,...] 
-
-            colors = iter(cm.rainbow(np.linspace(0, 1, 100)))
-            for i in range (0,100,1):
-                cov = covs[i,...]
-                blobs = range(covs.shape[1])
-                c = next(colors)
-                plt.bar(blobs, cov, color=c)
-            plt.xlabel("Blob")
-            plt.ylabel("coverage")
-            plt.title("coverage by thr per blob")
-            plt.show()
-            cv2.waitKey()
-
-            colors = iter(cm.rainbow(np.linspace(0, 1, 100)))
-            for i in range (0,100,1):
-                n = ns[i,...]
-                blobs = range(ns.shape[1])
-                c = next(colors)
-                plt.bar(blobs, n, color=c)
-            plt.xlabel("Blob")
-            plt.ylabel("coverage")
-            plt.title("coverage by thr per blob")
-            plt.show()
-            cv2.waitKey()
-
-            colors = iter(cm.rainbow(np.linspace(0, 1, 100)))
-            for i in range (0,100,1):
-                sum = sums[i,...]
-                blobs = range(sums.shape[1])
-                c = next(colors)
-                plt.bar(blobs, sum, color=c)
-            plt.xlabel("Blob")
-            plt.ylabel("coverage")
-            plt.title("coverage by thr per blob")
-            plt.show()
-            cv2.waitKey()
 
 
 def get_validation(blob, instances):
@@ -244,10 +204,9 @@ def get_validation(blob, instances):
     sum_list = list()
 
     for thr in tqdm(range(0,100,1)):
-
         inst_thr= list()
         for inst in inst_blob:
-            if inst[1]<(thr/100):
+            if inst[1]>(thr/100):
                 inst_thr.append(inst)
 
         n, sum = get_aa(inst_thr)
@@ -263,21 +222,21 @@ def get_validation(blob, instances):
 def get_coverage(map, instances):
     size = 0
     count = 0
-    aux_map = np.zeros(map.shape, dtype="uint8")
+
+    map2 = copy.deepcopy(map)
+    size = np.count_nonzero(map2 != 0)
+
     for inst in instances:
         box = getBoxFromInst(inst)
         (left, top, right, bottom) = (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
         for j in range(top, bottom):
             for k in range(left, right):
-                aux_map[j, k] = 1
-
-    for j in range(map.shape[0]):
-        for k in range(map.shape[1]):
-            if map[j,k] ==1:
-                size = size +1
-                if aux_map[j,k] == 1:
+                if map2[j,k] ==1:
                     count = count+1
+                    map2[j,k] = 0
+                    
     coverage = count/size
+
     return coverage
 
 
