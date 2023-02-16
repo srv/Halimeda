@@ -18,7 +18,7 @@ parser.add_argument('--path_od', help='path to the od output folder.', type=str)
 parser.add_argument('--path_ss', help='path to the ss output folder.', type=str)
 parser.add_argument('--path_ss_gt', help='path to the ss gt folder.', type=str)
 parser.add_argument('--path_out', help='path to the ss gt folder.', type=str)
-parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=127)
+parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=82)
 parsed_args = parser.parse_args(sys.argv[1:])
 
 ss_thr = parsed_args.ss_thr
@@ -153,7 +153,8 @@ def main():
             rec = zero_division(tp,tp+fn)
             fall = zero_division(fp,fp+tn)
             f1 = 2*(zero_division(prec*rec,prec+rec))
-            metrics = [acc, prec, rec, fall, f1]
+            n_blobs = len(info_blobs_range_list)
+            metrics = [acc, prec, rec, fall, f1, n_blobs]
 
             metrics_list.append(metrics)
 
@@ -195,7 +196,6 @@ def get_validation(blob, instances):
                     if blob[j, k] == 1:
                         inst_blob.append(inst)
                         found = True
-                    if found == True:
                         break
             else:
                 break

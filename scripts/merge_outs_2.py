@@ -15,9 +15,9 @@ from scipy.integrate import simpson
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--path_od', help='path to the od output folder.', type=str)  
-parser.add_argument('--od_thr', help='semantic segmentation gray scale thr.', type=float, default=0.82)
+parser.add_argument('--od_thr', help='semantic segmentation gray scale thr.', type=float, default=0.32)
 parser.add_argument('--path_ss', help='path to the ss output folder.', type=str)
-parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=127)
+parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=82)
 parser.add_argument('--path_merge', help='path to merge folder', type=str)
 parsed_args = parser.parse_args(sys.argv[1:])
 
@@ -60,9 +60,6 @@ def main():
         image_ss_gray = cv2.imread(file_path_ss, cv2.IMREAD_GRAYSCALE)  # read ss image
         instances_od = getInstances(file_path_od, image_ss_gray.shape)  # read od predictions
 
-        # NMS OF HIGHLY SIMILAR BBOX
-        # instances_od_nms = nms(instances_od, 0.9)
-
         # INIT FINAL COVERAGE LABEL MAP
         cov_merged = np.zeros(image_ss_gray.shape, dtype="uint8")
 
@@ -74,6 +71,7 @@ def main():
                 for j in range(top, bottom):
                     for k in range(left, right):
                         cov_merged[j, k] = 1 # 255 * instance[1]
+    
 
         # BINARIZE SEMANTIC RPEDS
         image_ss_bw = cv2.threshold(image_ss_gray, ss_thr, 255, cv2.THRESH_BINARY)[1]
@@ -100,9 +98,6 @@ def main():
         blob_set = set(label_map.flat)
         blob_set.pop()
 
-        plt.imshow(cov_merged, interpolation='none')
-        plt.show()
-        cv2.waitKey()
 
         for idx, i in enumerate(blob_set): # TODO CHANGE A QUE I SOLO SEA LOS NUMEROS DE LSO BLOBS QUE HAN SOBREVIVIDO AL FILTERING
             print("working on blob " + str(idx+1) + "/" + str(len(blob_set)))
@@ -117,83 +112,72 @@ def main():
             n_list_list.append(n_list)
             sum_list_list.append(sum_list)
 
-            if 100>auc>=90 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
-            elif 90>auc>=80 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
-            elif 80>auc>=70 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
-            elif 70>auc>=60 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
-            elif 60>auc>=60 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
-            elif 50>auc>=40 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
-            elif 40>auc>=30 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
-            elif 30>auc>=20 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
-            elif 20>auc>=10 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
-            elif 10>auc>0 and n_list[0]>0:
-                cov_merged = cov_merged + blob_map # np.clip(cov_merged + blob_map, 0, 1) 
+            if    0<=auc<=10 and n_list[0]>20:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
+            elif 10<auc<=20 and n_list[0]>64:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
+            elif 20<auc<=30 and n_list[0]>5:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
+            elif 30<auc<=40 and n_list[0]>2:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
+            elif 40<auc<=50 and n_list[0]>1:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
+            elif 50<auc<=60 and n_list[0]>1:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
+            elif 60<auc<=70 and n_list[0]>1:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
+            elif 70<auc<=80 and n_list[0]>1:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
+            elif 80<auc<=90 and n_list[0]>1:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
+            elif 90<auc<=100 and n_list[0]>1:
+                cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
 
-        plt.imshow(cov_merged, interpolation='none')
-        plt.show()
-        cv2.waitKey()
+        cov_merged = cov_merged*255
 
         file_path_merge=os.path.join(path_merge,list_ss[idx])  # takes od name
         imageio.imsave(file_path_merge, cov_merged) 
 
-        # #PRINTS
-        # cv2.imshow("image", image_ss_gray)
-        # cv2.imshow("binarization",image_ss_bw)
-        # cv2.imshow("Erosion", erosion)
-        # cv2.imshow("Dilation", dilation)
-        # plt.imshow(label_map, interpolation='none')
-        # plt.show()
-        # cv2.waitKey()
+    # HISTOGRAMS
+    covs = np.zeros([100,1], dtype="float")
+    ns = np.zeros([100,1], dtype="float")
+    sums = np.zeros([100,1], dtype="float")
 
-    # # HISTOGRAMS
-    # covs = np.zeros([100,1], dtype="float")
-    # ns = np.zeros([100,1], dtype="float")
-    # sums = np.zeros([100,1], dtype="float")
+    for i in range(len(cov_list_list)):
+        cov = np.array([cov_list_list[i]]).T
+        n = np.array([n_list_list[i]]).T
+        sum = np.array([sum_list_list[i]]).T
 
-    # for i in range(len(cov_list_list)):
-    #     cov = np.array([cov_list_list[i]]).T
-    #     n = np.array([n_list_list[i]]).T
-    #     sum = np.array([sum_list_list[i]]).T
+        covs = np.hstack((covs,cov))
+        ns = np.hstack((ns,n))
+        sums = np.hstack((sums,sum))
 
-    #     covs = np.hstack((covs,cov))
-    #     ns = np.hstack((ns,n))
-    #     sums = np.hstack((sums,sum))
+    covs = covs[:,1:]
+    ns = ns[:,1:]
+    sums = sums[:,1:]
 
-    # covs = covs[:,1:]
-    # ns = ns[:,1:]
-    # sums = sums[:,1:]
+    alls = np.hstack((covs,ns,sums))
 
-    # alls = np.hstack((covs,ns,sums))
+    aucs = np.array([auc_list])
+    df = pd.DataFrame (aucs)
+    filepath = os.path.join(path_merge, 'aucs.xlsx')
+    df.to_excel(filepath, index=False)
 
-    # aucs = np.array([auc_list])
-    # df = pd.DataFrame (aucs)
-    # filepath = os.path.join(path_merge, 'aucs.xlsx')
-    # df.to_excel(filepath, index=False)
+    df = pd.DataFrame (covs)
+    filepath = os.path.join(path_merge, 'covs.xlsx')
+    df.to_excel(filepath, index=False)
 
-    # df = pd.DataFrame (covs)
-    # filepath = os.path.join(path_merge, 'covs.xlsx')
-    # df.to_excel(filepath, index=False)
+    df = pd.DataFrame (ns)
+    filepath = os.path.join(path_merge, 'ns.xlsx')
+    df.to_excel(filepath, index=False)
 
-    # df = pd.DataFrame (ns)
-    # filepath = os.path.join(path_merge, 'ns.xlsx')
-    # df.to_excel(filepath, index=False)
+    df = pd.DataFrame (sums)
+    filepath = os.path.join(path_merge, 'sums.xlsx')
+    df.to_excel(filepath, index=False)
 
-    # df = pd.DataFrame (sums)
-    # filepath = os.path.join(path_merge, 'sums.xlsx')
-    # df.to_excel(filepath, index=False)
-
-    # df = pd.DataFrame (alls)
-    # filepath = os.path.join(path_merge, 'alls.xlsx')
-    # df.to_excel(filepath, index=False)
+    df = pd.DataFrame (alls)
+    filepath = os.path.join(path_merge, 'alls.xlsx')
+    df.to_excel(filepath, index=False)
 
 
 def get_validation(blob, instances):
