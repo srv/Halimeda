@@ -106,11 +106,6 @@ def main():
             cov_list, n_list, sum_list = get_validation(blob_map, instances_od)
 
             auc = trapz(cov_list, dx=1)   # https://i.ytimg.com/vi/9wz7djdke-U/maxresdefault.jpg
-            auc_list.append(auc)
-
-            cov_list_list.append(cov_list)
-            n_list_list.append(n_list)
-            sum_list_list.append(sum_list)
 
             if    0<=auc<=10 and n_list[0]>20:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
@@ -137,47 +132,6 @@ def main():
 
         file_path_merge=os.path.join(path_merge,list_ss[idx])  # takes od name
         imageio.imsave(file_path_merge, cov_merged) 
-
-    # HISTOGRAMS
-    covs = np.zeros([100,1], dtype="float")
-    ns = np.zeros([100,1], dtype="float")
-    sums = np.zeros([100,1], dtype="float")
-
-    for i in range(len(cov_list_list)):
-        cov = np.array([cov_list_list[i]]).T
-        n = np.array([n_list_list[i]]).T
-        sum = np.array([sum_list_list[i]]).T
-
-        covs = np.hstack((covs,cov))
-        ns = np.hstack((ns,n))
-        sums = np.hstack((sums,sum))
-
-    covs = covs[:,1:]
-    ns = ns[:,1:]
-    sums = sums[:,1:]
-
-    alls = np.hstack((covs,ns,sums))
-
-    aucs = np.array([auc_list])
-    df = pd.DataFrame (aucs)
-    filepath = os.path.join(path_merge, 'aucs.xlsx')
-    df.to_excel(filepath, index=False)
-
-    df = pd.DataFrame (covs)
-    filepath = os.path.join(path_merge, 'covs.xlsx')
-    df.to_excel(filepath, index=False)
-
-    df = pd.DataFrame (ns)
-    filepath = os.path.join(path_merge, 'ns.xlsx')
-    df.to_excel(filepath, index=False)
-
-    df = pd.DataFrame (sums)
-    filepath = os.path.join(path_merge, 'sums.xlsx')
-    df.to_excel(filepath, index=False)
-
-    df = pd.DataFrame (alls)
-    filepath = os.path.join(path_merge, 'alls.xlsx')
-    df.to_excel(filepath, index=False)
 
 
 def get_validation(blob, instances):
