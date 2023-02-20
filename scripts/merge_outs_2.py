@@ -109,9 +109,9 @@ def main():
 
             auc = trapz(cov_list, dx=1)   # https://i.ytimg.com/vi/9wz7djdke-U/maxresdefault.jpg
 
-            if    0<=auc<=10 and n_list[0]>3:
+            if    0<=auc<=10 and n_list[0]>15:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
-            elif 10<auc<=20 and n_list[0]>9:
+            elif 10<auc<=20 and n_list[0]>3:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
             elif 20<auc<=30 and n_list[0]>1:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
