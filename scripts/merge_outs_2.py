@@ -44,11 +44,6 @@ def main():
         print("¡PREDS NOT SAME LENGTH!")
         exit()
 
-    auc_list = list()
-    cov_list_list = list()
-    n_list_list = list()
-    sum_list_list = list()
-
     for idx in range(len(list_od)):
 
         print("working on:" + list_od[idx])
@@ -59,9 +54,16 @@ def main():
         # LOAD PREDS
         image_ss_gray = cv2.imread(file_path_ss, cv2.IMREAD_GRAYSCALE)  # read ss image
         instances_od = getInstances(file_path_od, image_ss_gray.shape)  # read od predictions
+        instances_od = sorted(instances_od, key=lambda conf: conf[1], reverse=True)
 
         # INIT FINAL COVERAGE LABEL MAP
         cov_merged = np.zeros(image_ss_gray.shape, dtype="uint8")
+
+        # DELETE INSTANCES WITH CONF < 1
+        for i, instance in enumerate(instances_od):
+            if instance[1] < 0.01:
+                break
+        instances_od = instances_od[:i]
 
         # PRINT BBOS OF OD PREDICTIONS WITH ENOUGH CONFIDENCE
         for instance in instances_od:
@@ -99,21 +101,21 @@ def main():
         blob_set.pop()
 
 
-        for idx, i in enumerate(blob_set): # TODO CHANGE A QUE I SOLO SEA LOS NUMEROS DE LSO BLOBS QUE HAN SOBREVIVIDO AL FILTERING
-            print("working on blob " + str(idx+1) + "/" + str(len(blob_set)))
+        for i, b in enumerate(blob_set): # TODO CHANGE A QUE I SOLO SEA LOS NUMEROS DE LSO BLOBS QUE HAN SOBREVIVIDO AL FILTERING
+            print("working on blob " + str(i+1) + "/" + str(len(blob_set)))
             blob_map = np.zeros(image_ss_gray.shape, dtype="uint8")
-            blob_map[np.where(label_map==i)]=1
+            blob_map[np.where(label_map==b)]=1
             cov_list, n_list, sum_list = get_validation(blob_map, instances_od)
 
             auc = trapz(cov_list, dx=1)   # https://i.ytimg.com/vi/9wz7djdke-U/maxresdefault.jpg
 
-            if    0<=auc<=10 and n_list[0]>20:
+            if    0<=auc<=10 and n_list[0]>2:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
-            elif 10<auc<=20 and n_list[0]>64:
+            elif 10<auc<=20 and n_list[0]>4:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
-            elif 20<auc<=30 and n_list[0]>5:
+            elif 20<auc<=30 and n_list[0]>3:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
-            elif 30<auc<=40 and n_list[0]>2:
+            elif 30<auc<=40 and n_list[0]>1:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  
             elif 40<auc<=50 and n_list[0]>1:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1) # cov_merged + blob_map  

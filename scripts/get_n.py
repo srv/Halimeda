@@ -62,6 +62,13 @@ def main():
         image_ss_gray = cv2.imread(file_path_ss, cv2.IMREAD_GRAYSCALE)  # read ss image
         image_ss_gt = cv2.imread(file_path_ss_gt, cv2.IMREAD_GRAYSCALE)  # read gt image
         instances_od = getInstances(file_path_od, image_ss_gray.shape)  # read od predictions
+        instances_od = sorted(instances_od, key=lambda conf: conf[1], reverse=True)
+
+        # DELETE INSTANCES WITH CONF < 1
+        for i, instance in enumerate(instances_od):
+            if instance[1] < 0.01:
+                break
+        instances_od = instances_od[:i]
 
         # BINARIZE SEMANTIC RPEDS
         image_ss_bw = cv2.threshold(image_ss_gray, ss_thr, 255, cv2.THRESH_BINARY)[1]
@@ -94,9 +101,7 @@ def main():
             blob_map = np.zeros(image_ss_gray.shape, dtype="uint8")
             blob_map[np.where(label_map==i)]=1
             cov_list, n_list, sum_list = get_validation(blob_map, instances_od)
-
             auc = trapz(cov_list, dx=1)   # https://i.ytimg.com/vi/9wz7djdke-U/maxresdefault.jpg
-
             real = check_blob(blob_map, image_ss_gt)
             info_blob = [auc, n_list[0], real]
             info_blobs_list.append(info_blob)
@@ -114,7 +119,6 @@ def main():
                 info_blobs_range_list.append(info_blobs_np[j])
             
         info_blobs_range_np = np.asarray(info_blobs_range_list)
-        print(info_blobs_range_np)
         metrics_list = list()
         for n in tqdm(range(500)):
             info_blobs_range_n_over_list = list()
@@ -297,6 +301,7 @@ def getBoxFromInst(inst):
     elif len(inst) == 6:
         box = (inst[2], inst[3], inst[4], inst[5])
     return box
+
 
 def nms(instances, thr):
 
