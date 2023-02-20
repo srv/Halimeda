@@ -166,7 +166,7 @@ def main():
 
     mets = np.hstack(metrics_list_list)
     df = pd.DataFrame (mets)
-    filepath = os.path.join(path_out, 'mets.xlsx')
+    filepath = os.path.join(path_out, 'n.xlsx')
     df.to_excel(filepath, index=False)
 
 def zero_division(n, d):
