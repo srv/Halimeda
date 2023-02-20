@@ -8,7 +8,14 @@ from natsort import natsorted
 import imageio
 
 
+"""
+Call: 
 
+python merge_outs.py --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_val/inference_OD/all_val/coverage \
+                    --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_val/inference_SS/all_val/ \
+                    --path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_val/combined_weights
+
+"""
 
 def main():
 
@@ -30,12 +37,24 @@ def main():
     if  len(list_od) == len(list_ss):
 
         for idx in range(len(list_od)):
+
             file_path_od = os.path.join(path_od,list_od[idx])
             file_path_ss = os.path.join(path_ss,list_ss[idx])
 
+            print("image_ss: ",file_path_od)
+            print("image_od: ",file_path_ss)
+
             image_od = imageio.imread(file_path_od)  # read od image
             image_ss = imageio.imread(file_path_ss)  # read ss image
+            if idx==1:
+                print(image_od)
+                print("image_ss: ",file_path_od)
+                print(" ")
+                print("image_od: ",file_path_ss)
+                print("---------------------------------------------------------------------------")
             image_merged = (image_od*0.5)+(image_ss*0.5)
+
+            
             #image_merged = (image_od*0.75)+(image_ss*0.25)
             #image_merged = (image_od*0.25)+(image_ss*0.75)
 
@@ -45,9 +64,6 @@ def main():
     else:
 
         print("NOT SAME LENGTH!!!!")
-
-
-
 
 
 if __name__ == "__main__":
