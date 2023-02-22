@@ -92,7 +92,7 @@ def main():
         blob_set = set(label_map.flat)
         blob_set.pop()
 
-        for idx, i in enumerate(blob_set): # TODO CHANGE A QUE I SOLO SEA LOS NUMEROS DE LSO BLOBS QUE HAN SOBREVIVIDO AL FILTERING
+        for idx, i in enumerate(blob_set):
             print("working on blob " + str(idx+1) + "/" + str(len(blob_set)))
             blob_map = np.zeros(image_ss_gray.shape, dtype="uint8")
             blob_map[np.where(label_map==i)]=1
