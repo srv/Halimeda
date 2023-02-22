@@ -2,16 +2,17 @@ import os
 import cv2
 import sys
 import copy
-import imageio
 import argparse
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from numpy import trapz
 from natsort import natsorted
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import cm
-from scipy.integrate import simpson
+
+"""
+CALL: 
+get_n.py --path_od ../merge/val_n/od/labels/ --path_ss ../merge/val_n/ss/pred/ --path_ss_gt ../merge/val_n/gt/ --path_out ../merge/val_n/merged/cthr1/ --iter 1
+"""
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--path_od', help='path to the od output folder.', type=str)  
@@ -19,6 +20,7 @@ parser.add_argument('--path_ss', help='path to the ss output folder.', type=str)
 parser.add_argument('--path_ss_gt', help='path to the ss gt folder.', type=str)
 parser.add_argument('--path_out', help='path to the ss gt folder.', type=str)
 parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=82)
+parser.add_argument('--iter', help='n iterations for erode dilation', type=int, default=1)
 parsed_args = parser.parse_args(sys.argv[1:])
 
 ss_thr = parsed_args.ss_thr
@@ -26,13 +28,7 @@ path_ss = parsed_args.path_ss
 path_od = parsed_args.path_od
 path_out = parsed_args.path_out
 path_ss_gt = parsed_args.path_ss_gt
-
-
-"""
-CALL: 
-python get_n.py --path_od path/to/od/preds --path_ss path/to/ss/preds --path_ss_gt path/to/ss_gts --path_out path/to/out --ss_thr 100
-
-"""
+iter = parsed_args.iter
 
 
 def main():
@@ -74,14 +70,14 @@ def main():
         image_ss_bw = cv2.threshold(image_ss_gray, ss_thr, 255, cv2.THRESH_BINARY)[1]
         image_ss_gt = cv2.threshold(image_ss_gt, 127, 255, cv2.THRESH_BINARY)[1]
         image_ss_gt = np.asarray(image_ss_gt)
+
         # MORPHOLOGICAL OPERATIONS
         kernel = np.ones((5, 5), np.uint8)
-        erosion = cv2.erode(image_ss_bw, kernel, iterations=2) 
-        dilation = cv2.dilate(erosion, kernel, iterations=1)
+        erosion = cv2.erode(image_ss_bw, kernel, iterations=iter) 
 
         # BLOB DETECTION
         print("detecting blobs")
-        n_labels, label_map, values, centroid = cv2.connectedComponentsWithStats(dilation,4,cv2.CV_32S)
+        n_labels, label_map, values, centroid = cv2.connectedComponentsWithStats(erosion,4,cv2.CV_32S)
 
         # FILTERING
         print("filtering blobs")
@@ -100,6 +96,7 @@ def main():
             print("working on blob " + str(idx+1) + "/" + str(len(blob_set)))
             blob_map = np.zeros(image_ss_gray.shape, dtype="uint8")
             blob_map[np.where(label_map==i)]=1
+            blob_map = cv2.dilate(blob_map, kernel, iterations=iter)
             cov_list, n_list, sum_list = get_validation(blob_map, instances_od)
             auc = trapz(cov_list, dx=1)   # https://i.ytimg.com/vi/9wz7djdke-U/maxresdefault.jpg
             real = check_blob(blob_map, image_ss_gt)
@@ -109,13 +106,16 @@ def main():
     info_blobs_np = np.asarray(info_blobs_list)
 
     metrics_list_list = list()
+    split = 10
 
-    for i in range(10):
+    for i in range(split):
 
-        print("evaluating aucs from " + str(i*10) + " - " + str((i+1)*10))
+        r = 100/split
+        print("evaluating aucs from " + str(i*r) + " - " + str((i+1)*r))
+
         info_blobs_range_list = list()
         for j in range(len(info_blobs_list)):
-            if info_blobs_np[j][0] > (i)*10 and info_blobs_np[j][0] < (i+1)*10:
+            if info_blobs_np[j][0] > (i)*r and info_blobs_np[j][0] <= (i+1)*r:
                 info_blobs_range_list.append(info_blobs_np[j])
             
         info_blobs_range_np = np.asarray(info_blobs_range_list)
@@ -166,7 +166,7 @@ def main():
 
     mets = np.hstack(metrics_list_list)
     df = pd.DataFrame (mets)
-    filepath = os.path.join(path_out, 'n.xlsx')
+    filepath = os.path.join(path_out, 'n_'+str(iter)+'.xlsx')
     df.to_excel(filepath, index=False)
 
 def zero_division(n, d):
@@ -182,12 +182,10 @@ def check_blob(blob, gt):
             sum = sum + 1
     if sum/size >= 0.5:
         check  =True
-
     return check
 
 
 def get_validation(blob, instances):
-
     # GET INSTANCES THAT OVERLAP WITH BLOB
     inst_blob = list()
     for inst in instances:
@@ -203,34 +201,27 @@ def get_validation(blob, instances):
                         break
             else:
                 break
-
     cov_list = list()
     n_list = list()
     sum_list = list()
-
     for thr in tqdm(range(0,100,1)):
         inst_thr= list()
         for inst in inst_blob:
             if inst[1]>(thr/100):
                 inst_thr.append(inst)
-
         n, sum = get_aa(inst_thr)
         n_list.append(n)
         sum_list.append(sum)
-
         cov = get_coverage(blob,inst_thr)
         cov_list.append(cov)
-
     return cov_list, n_list, sum_list
 
 
 def get_coverage(map, instances):
     size = 0
     count = 0
-
     map2 = copy.deepcopy(map)
     size = np.count_nonzero(map2 != 0)
-
     for inst in instances:
         box = getBoxFromInst(inst)
         (left, top, right, bottom) = (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
@@ -238,10 +229,8 @@ def get_coverage(map, instances):
             for k in range(left, right):
                 if map2[j,k] ==1:
                     count = count+1
-                    map2[j,k] = 0
-                    
+                    map2[j,k] = 0   
     coverage = count/size
-
     return coverage
 
 
@@ -301,36 +290,6 @@ def getBoxFromInst(inst):
     elif len(inst) == 6:
         box = (inst[2], inst[3], inst[4], inst[5])
     return box
-
-
-def nms(instances, thr):
-
-    for i1, pred1 in enumerate(instances):
-        intersectionArea1 = list()
-        intersectionArea2 = list()
-        delete = list()
-        box1 = getBoxFromInst(pred1)
-        area1 = getBoxArea(box1)
-
-        for i2, pred2 in enumerate(instances):
-
-            box2 = getBoxFromInst(pred2)
-            area2 = getBoxArea(box2)
-
-            inter = getIntersectionArea(box1, box2)
-            ioa1 = inter/area1
-            ioa2 = inter/area2
-
-            intersectionArea1.append(ioa1)
-            intersectionArea2.append(ioa2)
-
-        for i3 in range(len(intersectionArea1)):
-            if (intersectionArea1[i3] > thr or intersectionArea2[i3] > thr) and i3 != i1:
-                delete.append(i3)
-        for index in sorted(delete, reverse=True):
-            del instances[index]
-
-    return instances
 
 
 def getIntersectionArea(boxA, boxB):

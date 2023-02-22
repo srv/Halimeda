@@ -1,0 +1,11 @@
+halimeda 0.9 98 88 118 107
+halimeda 0.9 135 40 167 92
+halimeda 0.7 51 72 64 104
+halimeda 0.5 189 129 193 136
+halimeda 0.4 182 102 188 107
+halimeda 0.3 62 57 78 84
+halimeda 0.3 171 99 176 104
+halimeda 0.3 186 114 195 123
+halimeda 0.2 179 131 184 139
+halimeda 0.2 175 90 180 96
+halimeda 0.1 176 112 180 118

@@ -1,0 +1,11 @@
+halimeda 0.9 10 106 16 110 green
+halimeda 0.9 55 131 60 134 brown
+halimeda 0.8 27 177 36 184 gold
+halimeda 0.8 16 142 23 150 red
+halimeda 0.8 40 105 44 110 blue
+halimeda 0.7 31 129 40 134 white
+halimeda 0.4 47 79 95 150 orange
+halimeda 0.3 21 75 63 120 olive
+halimeda 0.23 1 113 66 172 gray
+halimeda 0.2 1 160 56 200 green
+halimeda 0.2 1 61 35 129 red

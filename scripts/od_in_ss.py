@@ -2,16 +2,15 @@ import os
 import cv2
 import sys
 import copy
-import imageio
 import argparse
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-from numpy import trapz
 from natsort import natsorted
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import cm
-from scipy.integrate import simpson
+
+"""
+CALL: 
+python get_n.py --path_od path/to/od/preds --path_ss_gt path/to/ss_gts --path_out path/to/out
+"""
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--path_od', help='path to the od output folder.', type=str)  
@@ -22,11 +21,6 @@ parsed_args = parser.parse_args(sys.argv[1:])
 path_od = parsed_args.path_od
 path_ss_gt = parsed_args.path_ss_gt
 path_out = parsed_args.path_out
-
-"""
-CALL: 
-python get_n.py --path_od path/to/od/preds --path_ss_gt path/to/ss_gts --path_out path/to/out
-"""
 
 
 def main():
@@ -45,11 +39,11 @@ def main():
 
         print("working on:" + list_ss_gt[idx])
         
-        # LOAD PREDS
+        # LOAD PREDS OD
         file_path_od = os.path.join(path_od,list_od[idx])
         file_path_ss_gt = os.path.join(path_ss_gt,list_ss_gt[idx])
         
-        # LOAD PREDS
+        # LOAD GT SS
         image_ss_gt = cv2.imread(file_path_ss_gt, cv2.IMREAD_GRAYSCALE)  # read gt image
         instances = getInstances(file_path_od, image_ss_gt.shape)  # read od predictions
         instances = sorted(instances, key=lambda conf: conf[1], reverse=True)
@@ -95,10 +89,6 @@ def main():
     df = pd.DataFrame (out)
     filepath = os.path.join(path_out, 'hist.xlsx')
     df.to_excel(filepath, index=False)
-
-
-def zero_division(n, d):
-    return n / d if d else 0
 
 
 def yolo_to_xml_bbox(bbox, w, h):
