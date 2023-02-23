@@ -17,3 +17,20 @@ import os
 
 # command = "python3 evaluation.py --run_path ../runs/3/da_lr/1024_3_0003_d/ --mask_path ../data/splits/cross2/test/mask --shape 1024"
 # os.system(command)
+
+
+
+
+
+
+
+command = "python3 evaluation.py --run_name 0.3  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_test/combined_weights_swp/0.3  --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_test/combined_weights_swp/0.3  --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/gt_test/all/ --shape 1024"
+os.system(command)
+
+
+command = "python3 evaluation.py --run_name 0.4  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_test/combined_weights_swp/0.4  --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_test/combined_weights_swp/0.4  --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/gt_test/all/ --shape 1024"
+os.system(command)
+
+
+command = "python3 evaluation.py --run_name 0.45  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_test/combined_weights_swp/0.45  --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_test/combined_weights_swp/0.45  --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/gt_test/all/ --shape 1024"
+os.system(command)

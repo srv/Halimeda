@@ -79,7 +79,7 @@ for thr in tqdm(range(1, max_grey)):  # range(1, max_grey)
     accuracy_list.append(accuracy)
     f1_list.append(f1)
 
-thr_best = np.argmax(f1_list)
+thr_best = np.nanargmax(f1_list)
 acc_best = accuracy_list[thr_best]
 prec_best = precision_list[thr_best]
 rec_best = recall_list[thr_best]
