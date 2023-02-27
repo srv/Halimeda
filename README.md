@@ -13,23 +13,6 @@ To clone the repository do:
 
 `$ git submodule foreach -q --recursive 'branch="$(git config -f $toplevel/.gitmodules submodule.$name.branch)"; git checkout $branch'`
 
-or:
-
-`$ git clone https://github.com/srv/Halimeda.git`
-
-`$ cd object/yolov5`
-
-`$ git submodule init`
-
-`$ git submodule update`
-
-`$ cd ..`
-
-`$ cd SS_Halimeda`
-
-`$ git submodule init`
-
-`$ git submodule update`
 
 # Object detection enviroment installation
 
@@ -39,6 +22,6 @@ or:
 
 ## Download object detection model:
 
-https://zenodo.org/record/7611869#.Y_xsFSbMJD8
+[Object detection model](https://zenodo.org/record/7611869#.Y_xsFSbMJD8)
 
 
