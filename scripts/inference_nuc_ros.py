@@ -25,6 +25,15 @@ from mine_detection.msg import det
 from mine_detection.msg import mine_detections
 from std_msgs.msg       import Float64
 
+# https://stackoverflow.com/questions/65678158/in-python-3-how-can-i-run-two-functions-at-the-same-time
+# https://nitratine.net/blog/post/python-threading-basics/
+# https://stackoverflow.com/questions/3221655/why-doesnt-a-string-in-parentheses-make-a-tuple-with-just-that-string
+from threading import Thread, Lock
+
+
+#import cv2
+#from cv_bridge import CvBridge, CvBridgeError
+
 
 class Object_detection:
 
@@ -39,24 +48,22 @@ class Object_detection:
 		self.model_path_ss = "path/to/model.h5"
 		self.od_model_path = "path/to/model.h5"
 		
-
+		# CvBridge for image conversion
+		# self.bridge = CvBridge()
+		
 		#example of reading from a yaml: self.model_path = rospy.get_param('mine_detec/model_path')
 
 		# Params
 		self.init = False
 		self.new_image = False
 	
-
-		self.confidence = Float64()
-
 		self.det = det()
 		self.mine_detections_out = mine_detections()
 		self.mine_detections_list = []
 		self.s_list = []
 
 		# Set subscribers
-		image_sub_ss = message_filters.Subscriber('/stereo_down/scaled_x2/left/image_rect_color', Image)
-		image_sub_od = message_filters.Subscriber('/stereo_down/scaled_x2/left/image_rect_color', Image)
+		image_sub = message_filters.Subscriber('/stereo_down/scaled_x2/left/image_rect_color', Image)
 		info_sub = message_filters.Subscriber('/stereo_down/left/camera_info', CameraInfo)
 
 		image_sub_ss.registerCallback(self.cb_image_ss)
@@ -64,68 +71,45 @@ class Object_detection:
 		info_sub.registerCallback(self.cb_info)
 
 		# Set publishers
-		self.pub_mine_det = rospy.Publisher('mine_det', mine_detections, queue_size=4)
+		self.pub_img_merged = rospy.Publisher('segmented', Image, queue_size=4)
 
 		# Set classification timer
 		rospy.Timer(rospy.Duration(self.period), self.run)
 
 
-	def cb_image_ss(self, image):
-		image_ss = image
-		header = image_ss.header
-		info = self.info
-		self.init_ss = False
-		self.ready_ss = True
-
-		if self.init_ss == False:
-			# ss init
-			self.init_ss = True
-
-		if  self.ready_od:
-			self.ready_ss = False
-			# ss inference
-
-
-	def cb_image_od(self, image):
-		image_od = image
-		header = image_od.header
-		info = self.info
-		self.init_od = False
-		self.ready_od = True
-
-		if self.init_od == False:
-			# od init
-			self.init_od = True
-
-		if self.ready_ss:
-			self.ready_od = False
-			# od inference
+	def cb_image(self, image):
+		self.image = image
+		self.new_image = True
 
 
 	def cb_info(self, info):
 		self.info = info
 
 
+	def set_models(self):
+		a = 1
+		# set ss and od models
 
 
 	def run(self,_):
+		
+		# New image available
+		if not self.new_image:
+			return
+		self.new_image = False
 
 		try:
 			image = self.image
 			header = self.image.header
 			info = self.info
 
-			info.width = int(info.width/self.decimation)
-			info.height = int(info.height/self.decimation)
+			info.width = 1024
+			info.height =1024
 
-			self.mine_detections_out.header = header
-			self.mine_detections_out.image_rect_color = image
-			self.mine_detections_out.camera_info = info
-
-			if not self.init:
-				rospy.loginfo('[%s]: Start object detection', self.name)	
+			self.pub_img_merged.header = header
+			
 		except:
-			rospy.logwarn('[%s]: There is no input image to run the detection', self.name)
+			rospy.logwarn('[%s]: There is no input image to run the inference', self.name)
 			return
 
 		# Set model
@@ -133,151 +117,47 @@ class Object_detection:
 			self.set_models()
 			self.init = True
 			print("Model init")
+			
+		rospy.loginfo('[%s]: Starting inferences', self.name)	
+
 
 		# Object detection
-		image_np = np.array(np.frombuffer(image.data, dtype=np.uint8).reshape(720, 960,3))
-		input_tensor = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
-		detections = self.detection(input_tensor)
-
-		# check number of detections
-		num_detections = int(detections.pop('num_detections'))
-		# filter out detections
-		detections = {key: value[0, :num_detections].numpy() for key, value in detections.items()}
-		# detection_classes to ints
-		detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
-		# defining what we need from the resulting detection dict that we got from model output
-		key_of_interest = ['detection_classes', 'detection_boxes', 'detection_scores']
-		# filter out detections dict to get only boxes, classes and scores
-		detections = {key: value for key, value in detections.items() if key in key_of_interest}
-		if self.box_th != 0: # filtering detection if a confidence threshold for boxes was given as a parameter
-			for key in key_of_interest:
-				scores = detections['detection_scores']
-				current_array = detections[key]
-				filtered_current_array = current_array[scores > self.box_th]
-				detections[key] = filtered_current_array
+		self.image_np = np.array(np.frombuffer(image.data, dtype=np.uint8).reshape(1024, 1024,3))
 		
-		if self.nms_th != 0: # filtering rectangles if nms threshold was passed in as a parameter
-			# creating a zip object that will contain model output info as
-			output_info = list(zip(detections['detection_boxes'],
-									detections['detection_scores'],
-									detections['detection_classes']))
-			boxes, scores, classes = self.nms(output_info, self.nms_th)
-			
-			detections['detection_boxes'] = boxes # format: [y1, x1, y2, x2]
-			detections['detection_scores'] = scores
-			detections['detection_classes'] = classes
+		thread_ss = Thread(target=self.inference_ss)
+		thread_od = Thread(target=self.inference_od)
+		thread_ss.start()
+		thread_od.start()
+		thread_ss.join() # Don't exit while threads are running
+		thread_od.join() # Don't exit while threads are running		
+		
+		image_merged_np = merge(self)
+		#image_merged = self.array2img(image_merged_np)
+		#image_merged.header = header
+		#self.pub_img_merged.publish(image_merged)
 
-		# Publishers
-		self.confidence.data = 0
-		self.mine_detections_out.num_detections = 0
-		self.mine_detections_out.dets = []
+		
+	def inference_ss(self):
+		self.image_np_ss = self.image_np
+	
+	
+	def inference_od(self):
+		self.image_np_op = self.image_np
 
-		if len(detections['detection_scores'])>0:
-			self.confidence.data = detections['detection_scores'][0]
-			self.mine_detections_out.num_detections = len(detections['detection_scores'])
-			self.s_list.append(detections['detection_scores'][0])
-
-			for i in range(len(detections['detection_scores'])):
-				self.det.y1 = int(detections['detection_boxes'][i][0]*info.width)
-				self.det.x1 = int(detections['detection_boxes'][i][1]*info.height)
-				self.det.y2 = int(detections['detection_boxes'][i][2]*info.width)
-				self.det.x2 = int(detections['detection_boxes'][i][3]*info.height)
-				self.det.score = detections['detection_scores'][i]
-				self.det.object_class = "mine"
-				det2 = copy.deepcopy(self.det)
-				self.mine_detections_out.dets.append(det2)
-		else:
-			self.s_list.append(0)
-
-		self.pub_mine_det.publish(self.mine_detections_out)
-
-		#image_bb = self.msgify(Image, image_np_bb, encoding='rgb8')
-		#image_bb.header = header
-		#self.pub_mine_bb.publish(image_bb)
-
-
-	#def msgify(msg_type, numpy_obj, *args, **kwargs):
-	#	conv = _from_numpy.get((msg_type, kwargs.pop('plural', False)))
-	#	return conv(numpy_obj, *args, **kwargs)
-
-
-	def detection(self,image):
-		"""
-		Detect objects in image.
-
-		Args:
-		image: (tf.tensor): 4D input image
-
-		Returs:
-		detections (dict): predictions that model made
-		"""
-
-		image, shapes = self.detection_model.preprocess(image)
-		prediction_dict = self.detection_model.predict(image, shapes)
-		detections = self.detection_model.postprocess(prediction_dict, shapes)
-		return detections
-
-
-	def nms(self,rects, thd=0.5):
-		"""
-		Filter rectangles
-		rects is array of oblects ([x1,y1,x2,y2], confidence, class)
-		thd - intersection threshold (intersection divides min square of rectange)
-		"""
-		out = []
-
-		remove = [False] * len(rects)
-
-		for i in range(0, len(rects) - 1):
-			if remove[i]:
-				continue
-			inter = [0.0] * len(rects)
-			for j in range(i, len(rects)):
-				if remove[j]:
-					continue
-				inter[j] = self.intersection(rects[i][0], rects[j][0]) / min(self.square(rects[i][0]), self.square(rects[j][0]))
-
-			max_prob = 0.0
-			max_idx = 0
-			for k in range(i, len(rects)):
-				if inter[k] >= thd:
-					if rects[k][1] > max_prob:
-						max_prob = rects[k][1]
-						max_idx = k
-
-			for k in range(i, len(rects)):
-				if (inter[k] >= thd) & (k != max_idx):
-					remove[k] = True
-
-		for k in range(0, len(rects)):
-			if not remove[k]:
-				out.append(rects[k])
-
-		boxes = [box[0] for box in out]
-		scores = [score[1] for score in out]
-		classes = [cls[2] for cls in out]
-		return boxes, scores, classes
-
-
-	def intersection(self,rect1, rect2):
-		"""
-		Calculates square of intersection of two rectangles
-		rect: list with coords of top-right and left-boom corners [x1,y1,x2,y2]
-		return: square of intersection
-		"""
-		x_overlap = max(0, min(rect1[2], rect2[2]) - max(rect1[0], rect2[0]));
-		y_overlap = max(0, min(rect1[3], rect2[3]) - max(rect1[1], rect2[1]));
-		overlapArea = x_overlap * y_overlap;
-		return overlapArea
-
-
-	def square(self,rect):
-		"""
-		Calculates square of rectangle
-		"""
-		return abs(rect[2] - rect[0]) * abs(rect[3] - rect[1])
-
-
+		
+	def merge(self):
+		image_merged = self.image_np_ss*0.5 + self.image_np_op*0.5
+		return image_merged
+		
+		
+	#def array2img(self, array):
+	#	img_0 = np.ndarray(shape=(array.shape[0], array.shape[1], 3), dtype=np.uint8)
+	#	img_0[:,:,0] = array*255
+	#	img_0[:,:,1] = array*255
+	#	img_0[:,:,2] = array*255
+	#	img = self.bridge.cv2_to_imgmsg(img_0, encoding="bgr8")
+	#	return img	
+		
 if __name__ == '__main__':
 	try:
 		rospy.init_node('detect_image')
