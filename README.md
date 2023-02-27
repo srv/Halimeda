@@ -31,4 +31,8 @@ cd object_detection
 
 conda create -n <environment-name> --file object_req.txt
 
+## Download object detection model:
+
+https://zenodo.org/record/7611869#.Y_xsFSbMJD8
+
 
