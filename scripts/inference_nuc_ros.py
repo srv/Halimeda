@@ -10,32 +10,25 @@ import sys
 
 import numpy as np
 import tensorflow as tf
-import copy
+import torch
 
-path2scripts = '/home/sparus/object_detection/models/research' # TODO: provide pass to the research folder
-sys.path.insert(0, path2scripts) # making scripts in models/research available for import
-# importing all scripts that will be needed to export your model and use it for inference
-from object_detection.utils import config_util
-from object_detection.builders import model_builder
+import copy
 
 import rospy
 import message_filters
 from sensor_msgs.msg import Image, CameraInfo
-from mine_detection.msg import det
-from mine_detection.msg import mine_detections
-from std_msgs.msg       import Float64
 
+# TODO CHECK THREADING
 # https://stackoverflow.com/questions/65678158/in-python-3-how-can-i-run-two-functions-at-the-same-time
 # https://nitratine.net/blog/post/python-threading-basics/
 # https://stackoverflow.com/questions/3221655/why-doesnt-a-string-in-parentheses-make-a-tuple-with-just-that-string
 from threading import Thread, Lock
 
+# import cv2 # TODO NEEDED? CHECK WITH ROS_PATH AND CONDA_PATH
+from cv_bridge import CvBridge, CvBridgeError
 
-#import cv2
-#from cv_bridge import CvBridge, CvBridgeError
 
-
-class Object_detection:
+class Halimeda_detection:
 
 
 	def __init__(self, name):
@@ -43,25 +36,24 @@ class Object_detection:
 
 		self.period = rospy.get_param('mine_detec/period')
 
-		self.shape
+		self.shape = 1024
 
 		self.model_path_ss = "path/to/model.h5"
-		self.od_model_path = "path/to/model.h5"
-		
+		self.model_path_od = "path/to/model.h5"
+
+		self.thr_ss : 82
+		self.thr_od : 32
+
 		# CvBridge for image conversion
-		# self.bridge = CvBridge()
+		self.bridge = CvBridge()
 		
+		# TODO READ FROM YAML?
 		#example of reading from a yaml: self.model_path = rospy.get_param('mine_detec/model_path')
 
 		# Params
 		self.init = False
 		self.new_image = False
 	
-		self.det = det()
-		self.mine_detections_out = mine_detections()
-		self.mine_detections_list = []
-		self.s_list = []
-
 		# Set subscribers
 		image_sub = message_filters.Subscriber('/stereo_down/scaled_x2/left/image_rect_color', Image)
 		info_sub = message_filters.Subscriber('/stereo_down/left/camera_info', CameraInfo)
@@ -87,8 +79,14 @@ class Object_detection:
 
 
 	def set_models(self):
-		a = 1
-		# set ss and od models
+
+		self.model_ss = tf.keras.models.load_model(os.path.join(self.model_path_ss, "model.h5"))
+
+    	self.model_od = torch.hub.load(self.model_path_od, 'custom', path='weights/best.pt', source='local',force_reload = False)
+		# TODO CHECK
+		# self.model_od = torch.hub.load(path, 'resnet50', weights='ResNet50_Weights.DEFAULT')
+		# https://pytorch.org/docs/stable/hub.html
+		self.model_od.to(torch.device('cpu')).eval()
 
 
 	def run(self,_):
@@ -103,8 +101,8 @@ class Object_detection:
 			header = self.image.header
 			info = self.info
 
-			info.width = 1024
-			info.height =1024
+			info.width = self.shape
+			info.height = self.shape
 
 			self.pub_img_merged.header = header
 			
@@ -120,10 +118,10 @@ class Object_detection:
 			
 		rospy.loginfo('[%s]: Starting inferences', self.name)	
 
-
 		# Object detection
-		self.image_np = np.array(np.frombuffer(image.data, dtype=np.uint8).reshape(1024, 1024,3))
-		
+		self.image_np = np.array(np.frombuffer(image.data, dtype=np.uint8).reshape(self.shape, self.shape,3))
+		#self.image_np=img_as_ubyte(self.image_np)	# TODO NEEDED?
+
 		thread_ss = Thread(target=self.inference_ss)
 		thread_od = Thread(target=self.inference_od)
 		thread_ss.start()
@@ -132,36 +130,58 @@ class Object_detection:
 		thread_od.join() # Don't exit while threads are running		
 		
 		image_merged_np = merge(self)
-		#image_merged = self.array2img(image_merged_np)
-		#image_merged.header = header
-		#self.pub_img_merged.publish(image_merged)
+		image_merged = img = self.bridge.cv2_to_imgmsg(image_merged_np, encoding="bgr8")
+		image_merged.header = header
+		self.pub_img_merged.publish(image_merged)
 
 		
 	def inference_ss(self):
-		self.image_np_ss = self.image_np
+		X_test = np.zeros((1, self.shape, self.shape, 3), dtype=np.uint8)
+		X_test[0] = self.image_np
+		preds_test = self.model_ss.predict(X_test, verbose=1)
+		self.image_np_ss = np.squeeze(preds_test[0])
+		rospy.loginfo('[%s]: SS inference done', self.name)	
 	
 	
 	def inference_od(self):
-		self.image_np_op = self.image_np
+		dets_od = self.model_od([self.image_np])
 
-		
+        self.image_np_od = np.zeros([self.shape, self.shape], dtype=np.uint8) 
+
+		dets_pandas = dets_od.pandas().xyxy[0]
+		for index, row in dets_pandas.iterrows():
+			conf = row['confidence']
+			xmin=row['xmin']
+			ymin=row['ymin']
+			xmax=row['xmax']
+			ymax=row['ymax']
+
+			for j in range(ymin, ymax):			# TODO FIX XYXY XYWH ABS REL
+				for k in range(xmin, xmax):		# TODO FIX XYXY XYWH ABS REL
+					self.image_np_od[j, k] = int(255*conf)
+
+		rospy.loginfo('[%s]: OD inference done', self.name)	
+
+
 	def merge(self):
+		# TODO APPLY SS AND OD THR AND BEST MERGING %
 		image_merged = self.image_np_ss*0.5 + self.image_np_op*0.5
 		return image_merged
 		
+	# TODO NEEDED?
+	# def array2img(self, array):
+	# 	img_0 = np.ndarray(shape=(array.shape[0], array.shape[1], 3), dtype=np.uint8)
+	# 	img_0[:,:,0] = array*255
+	# 	img_0[:,:,1] = array*255
+	# 	img_0[:,:,2] = array*255
+	# 	img = self.bridge.cv2_to_imgmsg(img_0, encoding="bgr8")
+	# 	return img	
 		
-	#def array2img(self, array):
-	#	img_0 = np.ndarray(shape=(array.shape[0], array.shape[1], 3), dtype=np.uint8)
-	#	img_0[:,:,0] = array*255
-	#	img_0[:,:,1] = array*255
-	#	img_0[:,:,2] = array*255
-	#	img = self.bridge.cv2_to_imgmsg(img_0, encoding="bgr8")
-	#	return img	
-		
+
 if __name__ == '__main__':
 	try:
-		rospy.init_node('detect_image')
-		Object_detection(rospy.get_name())
+		rospy.init_node('detect_halimeda')
+		Halimeda_detection(rospy.get_name())
 
 		rospy.spin()
 	except rospy.ROSInterruptException:
