@@ -6,26 +6,24 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 
 ros_path = '/opt/ros/kinetic/lib/python2.7/dist-packages'
 conda_path="/home/sparus/anaconda3/bin:$PATH"
-import sys
 
+import sys
+import time
+import torch
+import scipy
 import numpy as np
 import tensorflow as tf
-import torch
+import imageio.v2 as imageio
+from threading import Thread, Lock
 
-import copy
+sys.path.append(ros_path) #afegir ros al puthon path per a que robi les llibreries de ros
+
+if conda_path in sys.path:
+	sys.path.remove(conda_path)
 
 import rospy
 import message_filters
 from sensor_msgs.msg import Image, CameraInfo
-
-# TODO CHECK THREADING
-# https://stackoverflow.com/questions/65678158/in-python-3-how-can-i-run-two-functions-at-the-same-time
-# https://nitratine.net/blog/post/python-threading-basics/
-# https://stackoverflow.com/questions/3221655/why-doesnt-a-string-in-parentheses-make-a-tuple-with-just-that-string
-from threading import Thread, Lock
-
-# import cv2 # TODO NEEDED? CHECK WITH ROS_PATH AND CONDA_PATH
-from cv_bridge import CvBridge, CvBridgeError
 
 
 class Halimeda_detection:
@@ -34,28 +32,19 @@ class Halimeda_detection:
 	def __init__(self, name):
 		self.name = name
 
-		self.period = rospy.get_param('mine_detec/period')
+		self.period = 1 # rospy.get_param('mine_detec/period')
 
 		self.shape = 1024
 
-		self.model_path_ss = "path/to/model.h5"
-		self.model_path_od = "path/to/model.h5"
-
-		self.thr_ss : 82
-		self.thr_od : 32
-
-		# CvBridge for image conversion
-		self.bridge = CvBridge()
-		
-		# TODO READ FROM YAML?
-		#example of reading from a yaml: self.model_path = rospy.get_param('mine_detec/model_path')
+		self.model_path_ss = "../models"
+		self.model_path_od = "../models/od.pt"
 
 		# Params
 		self.init = False
 		self.new_image = False
 	
 		# Set subscribers
-		image_sub = message_filters.Subscriber('/stereo_down/left/image_raw', Image)
+		image_sub = message_filters.Subscriber('/stereo_down/left/image_rect_color', Image)
 		info_sub = message_filters.Subscriber('/stereo_down/left/camera_info', CameraInfo)
 
 		image_sub.registerCallback(self.cb_image)
@@ -78,13 +67,8 @@ class Halimeda_detection:
 
 
 	def set_models(self):
-
 		self.model_ss = tf.keras.models.load_model(os.path.join(self.model_path_ss, "model.h5"))
-
-		self.model_od = torch.hub.load(self.model_path_od, 'custom', path='weights/best.pt', source='local',force_reload = False)
-		# TODO CHECK
-		# self.model_od = torch.hub.load(path, 'resnet50', weights='ResNet50_Weights.DEFAULT')
-		# https://pytorch.org/docs/stable/hub.html
+		self.model_od = torch.hub.load('/home/sparus/Halimeda/object_detection/yolov5', 'custom', path=self.model_path_od, source='local',force_reload = False)
 		self.model_od.to(torch.device('cpu')).eval()
 
 
@@ -118,64 +102,98 @@ class Halimeda_detection:
 		rospy.loginfo('[%s]: Starting inferences', self.name)	
 
 		# Object detection
-		self.image_np = np.array(np.frombuffer(image.data, dtype=np.uint8).reshape(self.shape, self.shape,3))
-		#self.image_np=img_as_ubyte(self.image_np)	# TODO NEEDED?
+		image_np = np.array(np.frombuffer(image.data, dtype=np.uint8).reshape(1440, 1920,3))
 
-		thread_ss = Thread(target=self.inference_ss)
-		thread_od = Thread(target=self.inference_od)
-		thread_ss.start()
-		thread_od.start()
-		thread_ss.join() # Don't exit while threads are running
-		thread_od.join() # Don't exit while threads are running		
-		
-		image_merged_np = merge(self)
-		image_merged = img = self.bridge.cv2_to_imgmsg(image_merged_np, encoding="bgr8")
-		image_merged.header = header
-		self.pub_img_merged.publish(image_merged)
+		#image_np = imageio.imread("../halimeda_56.JPG")
+
+		self.image_np_rsz = self.resize_volume(image_np)
+
+		tinf1 = time.time()
+		self.inference_ss()
+		self.inference_od()
+		# thread_ss = Thread(target=self.inference_ss)
+		# thread_od = Thread(target=self.inference_od)
+		# thread_ss.start()
+		# thread_od.start()
+		# thread_ss.join() # Don't exit while threads are running
+		# thread_od.join() # Don't exit while threads are running		
+		tinf2 = time.time()
+		tinf = tinf2-tinf1
+		print("inference took: " + str(tinf)  + "seconds")
+
+		image_merged_np = self.merge()
+
+		name = str(image.header.stamp.secs)
+		imageio.imwrite(os.path.join("../out", name + "_merged.png"), image_merged_np)
+		imageio.imwrite(os.path.join("../out", name + "_ss.png"), self.image_np_ss)
+		imageio.imwrite(os.path.join("../out", name + "_od.png"), self.image_np_od)
 
 		
 	def inference_ss(self):
+		tss1 = time.time()
 		X_test = np.zeros((1, self.shape, self.shape, 3), dtype=np.uint8)
-		X_test[0] = self.image_np
-		preds_test = self.model_ss.predict(X_test, verbose=1)
-		self.image_np_ss = np.squeeze(preds_test[0])
-		rospy.loginfo('[%s]: SS inference done', self.name)	
+		X_test[0] = self.image_np_rsz
+		preds_test = self.model_ss.predict(X_test)
+		self.image_np_ss = np.squeeze(preds_test[0])*255
+		#rospy.loginfo('[%s]: SS inference done', self.name)	
+		tss2 = time.time()
+		tss =tss2-tss1
+		print("ss took: " + str(tss)  + "seconds")
+
 	
 	
 	def inference_od(self):
-		dets_od = self.model_od([self.image_np])
-
+		tod1 = time.time()
+		dets_od = self.model_od([self.image_np_rsz])
 		self.image_np_od = np.zeros([self.shape, self.shape], dtype=np.uint8) 
-
 		dets_pandas = dets_od.pandas().xyxy[0]
+
 		for index, row in dets_pandas.iterrows():
 			conf = row['confidence']
-			xmin=row['xmin']
-			ymin=row['ymin']
-			xmax=row['xmax']
-			ymax=row['ymax']
+			xmin=int(row['xmin'])
+			ymin=int(row['ymin'])
+			xmax=int(row['xmax'])
+			ymax=int(row['ymax'])
 
-			for j in range(ymin, ymax):			# TODO FIX XYXY XYWH ABS REL
-				for k in range(xmin, xmax):		# TODO FIX XYXY XYWH ABS REL
+			for j in range(ymin, ymax):	
+				for k in range(xmin, xmax):	
 					self.image_np_od[j, k] = int(255*conf)
 
-		rospy.loginfo('[%s]: OD inference done', self.name)	
+		#rospy.loginfo('[%s]: OD inference done', self.name)	
+		tod2 = time.time()
+		tod =tod2-tod1
+		print("od took: " + str(tod)  + "seconds")
 
 
 	def merge(self):
-		# TODO APPLY BEST MERGING %
-		image_merged = self.image_np_ss*0.5 + self.image_np_op*0.5
+		image_merged = self.image_np_ss*0.2 + self.image_np_od*0.8
+		image_merged=np.asarray(image_merged)
+		image_merged=image_merged.astype(np.uint8)
+		image_merged = np.where(image_merged<22, 0, 255)
 		return image_merged
+
+
+	def resize_volume(self, img):
 		
-	# TODO NEEDED?
-	# def array2img(self, array):
-	# 	img_0 = np.ndarray(shape=(array.shape[0], array.shape[1], 3), dtype=np.uint8)
-	# 	img_0[:,:,0] = array*255
-	# 	img_0[:,:,1] = array*255
-	# 	img_0[:,:,2] = array*255
-	# 	img = self.bridge.cv2_to_imgmsg(img_0, encoding="bgr8")
-	# 	return img	
+		desired_width = 1024
+		desired_height = 1024
+		desired_depth = 3
+
+		current_width = img.shape[0]
+		current_height = img.shape[1]
+		current_depth = img.shape[2]
+
+		width = current_width / desired_width
+		height = current_height / desired_height
+		depth = current_depth / desired_depth
 		
+		width_factor = 1 / width
+		height_factor = 1 / height
+		depth_factor = 1 / depth
+		
+		img = scipy.ndimage.zoom(img, (width_factor, height_factor, depth_factor), order=1)
+		return img
+
 
 if __name__ == '__main__':
 	try:
