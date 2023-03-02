@@ -55,11 +55,10 @@ class Halimeda_detection:
 		self.new_image = False
 	
 		# Set subscribers
-		image_sub = message_filters.Subscriber('/stereo_down/scaled_x2/left/image_rect_color', Image)
+		image_sub = message_filters.Subscriber('/stereo_down/left/image_raw', Image)
 		info_sub = message_filters.Subscriber('/stereo_down/left/camera_info', CameraInfo)
 
-		image_sub_ss.registerCallback(self.cb_image_ss)
-		image_sub_od.registerCallback(self.cb_image_od)
+		image_sub.registerCallback(self.cb_image)
 		info_sub.registerCallback(self.cb_info)
 
 		# Set publishers
@@ -82,7 +81,7 @@ class Halimeda_detection:
 
 		self.model_ss = tf.keras.models.load_model(os.path.join(self.model_path_ss, "model.h5"))
 
-    	self.model_od = torch.hub.load(self.model_path_od, 'custom', path='weights/best.pt', source='local',force_reload = False)
+		self.model_od = torch.hub.load(self.model_path_od, 'custom', path='weights/best.pt', source='local',force_reload = False)
 		# TODO CHECK
 		# self.model_od = torch.hub.load(path, 'resnet50', weights='ResNet50_Weights.DEFAULT')
 		# https://pytorch.org/docs/stable/hub.html
@@ -146,7 +145,7 @@ class Halimeda_detection:
 	def inference_od(self):
 		dets_od = self.model_od([self.image_np])
 
-        self.image_np_od = np.zeros([self.shape, self.shape], dtype=np.uint8) 
+		self.image_np_od = np.zeros([self.shape, self.shape], dtype=np.uint8) 
 
 		dets_pandas = dets_od.pandas().xyxy[0]
 		for index, row in dets_pandas.iterrows():
@@ -164,7 +163,7 @@ class Halimeda_detection:
 
 
 	def merge(self):
-		# TODO APPLY SS AND OD THR AND BEST MERGING %
+		# TODO APPLY BEST MERGING %
 		image_merged = self.image_np_ss*0.5 + self.image_np_op*0.5
 		return image_merged
 		
