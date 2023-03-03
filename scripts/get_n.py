@@ -62,7 +62,7 @@ def main():
 
         # DELETE INSTANCES WITH CONF < 1
         for i, instance in enumerate(instances_od):
-            if instance[1] < 0.01:  # TODO 0.01
+            if instance[1] < 0.01:
                 break
         instances_od = instances_od[:i]
 

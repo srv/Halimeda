@@ -13,10 +13,9 @@ import matplotlib.pyplot as plt
 """
 CALL: 
 
-python merge_outs_2.py --path_od ../merge/test_im/od/labels/ --path_ss ../merge/test_im/ss/pred/ --path_merge ../merge/test_im/merged_1/  --iter 1  --ns 12 8 1 2 1 1 1 1 1 1
+python merge_blobs.py --path_od ../merge/test_im/od/labels/ --path_ss ../merge/test_im/ss/pred/ --path_merge ../merge/test_im/merged_1/  --iter 1  --ns 12 3 1 2 1 1 1 1 1 1
 
 
-python merge_blobs.py --path_od ../merge/test/inference/od/labels/ --path_ss ../merge/test/inference/ss/ --ss_thr 96 --path_merge ../merge/test/merged_blob/merged_1_panic  --iter 1  --ns xxxxxxx
 
 PRINT:
 cv2.imshow("erosion", erosion)
@@ -71,7 +70,7 @@ def main():
 
         # DELETE INSTANCES WITH CONF < 1
         for i, instance in enumerate(instances_od):
-            if instance[1] < 0.01: # TODO CHANGE!!!! 0.01
+            if instance[1] < 0.01: 
                 break
         instances_od = instances_od[:i]
 
