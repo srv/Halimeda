@@ -19,7 +19,7 @@ parser.add_argument('--path_od', help='path to the od output folder.', type=str)
 parser.add_argument('--path_ss', help='path to the ss output folder.', type=str)
 parser.add_argument('--path_ss_gt', help='path to the ss gt folder.', type=str)
 parser.add_argument('--path_out', help='path to the ss gt folder.', type=str)
-parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=82)
+parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=84)
 parser.add_argument('--iter', help='n iterations for erode dilation', type=int, default=1)
 parsed_args = parser.parse_args(sys.argv[1:])
 
@@ -62,7 +62,7 @@ def main():
 
         # DELETE INSTANCES WITH CONF < 1
         for i, instance in enumerate(instances_od):
-            if instance[1] < 0.01:
+            if instance[1] < 0.01:  # TODO 0.01
                 break
         instances_od = instances_od[:i]
 

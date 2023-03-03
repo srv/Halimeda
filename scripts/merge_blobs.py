@@ -12,7 +12,11 @@ import matplotlib.pyplot as plt
 
 """
 CALL: 
-python merge_outs_2.py --path_od ../merge/test_im/od/labels/ --path_ss ../merge/test_im/ss/pred/ --path_merge ../merge/test_im/merged_1/  --iter 1  --ns 12 8 1 2 1 1 1 1 1 1 && 
+
+python merge_outs_2.py --path_od ../merge/test_im/od/labels/ --path_ss ../merge/test_im/ss/pred/ --path_merge ../merge/test_im/merged_1/  --iter 1  --ns 12 8 1 2 1 1 1 1 1 1
+
+
+python merge_blobs.py --path_od ../merge/test/inference/od/labels/ --path_ss ../merge/test/inference/ss/ --ss_thr 96 --path_merge ../merge/test/merged_blob/merged_1_panic  --iter 1  --ns xxxxxxx
 
 PRINT:
 cv2.imshow("erosion", erosion)
@@ -26,7 +30,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--path_od', help='path to the od output folder.', type=str)  
 parser.add_argument('--od_thr', help='semantic segmentation gray scale thr.', type=float, default=0.32)
 parser.add_argument('--path_ss', help='path to the ss output folder.', type=str)
-parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=82)
+parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=84)
 parser.add_argument('--path_merge', help='path to merge folder', type=str)
 parser.add_argument('--iter', help='n iterations for erode dilation', type=int, default=1)
 parser.add_argument('--ns', nargs="+", type=int)
@@ -67,7 +71,7 @@ def main():
 
         # DELETE INSTANCES WITH CONF < 1
         for i, instance in enumerate(instances_od):
-            if instance[1] < 0.01:
+            if instance[1] < 0.01: # TODO CHANGE!!!! 0.01
                 break
         instances_od = instances_od[:i]
 
@@ -89,7 +93,7 @@ def main():
 
         # BLOB DETECTION
         print("detecting blobs")
-        n_labels, label_map, values, centroid = cv2.connectedComponentsWithStats(erosion,10,cv2.CV_32S)
+        n_labels, label_map, values, centroid = cv2.connectedComponentsWithStats(erosion,4,cv2.CV_32S)
 
         print("filtering blobs")
         for i in range(1, n_labels):
