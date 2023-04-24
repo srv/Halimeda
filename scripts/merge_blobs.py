@@ -136,7 +136,7 @@ def main():
             elif 90<auc<=100 and n_list[0]>ns[9]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
 
-        cov_merged = cov_merged*255
+        cov_merged = cov_merged*255 # TODO PARAMETRITZAR!!
 
         file_path_merge=os.path.join(path_merge,list_ss[idx])  # takes od name
         imageio.imsave(file_path_merge, cov_merged) 
