@@ -10,6 +10,15 @@ from skimage.transform import resize
 '''
 CALL
 python evaluation.py --run_name test_1  --pred_path ../merge/test_im/merged/  --out_path ../merge/test_im/merged/  --gt_path ../merge/test_im/gt --shape 1024
+
+
+# python evaluation.py --run_name merge_w_yolo_small  --pred_path /mnt/c/Users/haddo/Halimeda/merge/test/merged_weights_yolo_sizes/yolo_medium/weighted_merge/       --out_path /mnt/c/Users/haddo/Halimeda/merge/test/merged_weights_yolo_sizes/yolo_medium  --gt_path ../merge/test/gt --shape 1024
+
+
+python evaluation.py --run_name yolo_XL  --pred_path /mnt/c/Users/haddo/Halimeda/merge/test/merged_weights_yolo_sizes/yolo_XL/weighted_merge/ \
+                    --out_path /mnt/c/Users/haddo/Halimeda/merge/test/merged_weights_yolo_sizes/yolo_XL/weighted_merge/  \
+                    --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/test/gt --shape 1024
+
 '''
 
 parser = argparse.ArgumentParser()
@@ -26,7 +35,9 @@ pred_path = parsed_args.pred_path
 gt_path = parsed_args.gt_path
 shape = parsed_args.shape
 
-grey_list = sorted(os.listdir(pred_path))
+# grey_list = sorted(os.listdir(pred_path))
+
+grey_list=sorted([file for file in os.listdir(pred_path) if os.path.isfile(os.path.join(pred_path,file))])
 img = imread(os.path.join(pred_path, grey_list[0]))
 
 grey = np.zeros((len(grey_list), shape, shape), dtype=np.uint8)
@@ -36,7 +47,10 @@ for n, id_ in enumerate(grey_list):
     img = resize(img, (shape, shape), mode='constant', preserve_range=True)
     grey[n] = img
 
-gt_list = sorted(os.listdir(gt_path))
+# gt_list = sorted(os.listdir(gt_path))
+gt_list=sorted([file for file in os.listdir(gt_path) if os.path.isfile(os.path.join(gt_path,file))])
+
+img = imread(os.path.join(pred_path, grey_list[0]))
 gt = np.zeros((len(gt_list), shape, shape), dtype=np.uint8)
 for n, id_ in enumerate(gt_list):
     path = os.path.join(gt_path, id_)
