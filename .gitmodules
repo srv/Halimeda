@@ -6,3 +6,6 @@
 	path = object_detection/yolov5
 	url = https://github.com/Caterina1996/yolov5.git
 	branch= caterina
+[submodule "halimeda_detection"]
+	path = halimeda_detection
+	url = git@github.com:srv/halimeda_detection.git
