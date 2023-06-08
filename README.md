@@ -1,6 +1,8 @@
 # Halimeda
 Halimeda coverage estimation
 
+ <img src="dataset/OD/test/halimeda_205.JPG" width="250">
+
 This repository aims to provide the necessary tools and knowledge to operate our halimeda coverage estimation algorithm.
 
 # Installation
