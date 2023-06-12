@@ -1,0 +1,7 @@
+python merge_blobs.py --path_od /home/uib/Halimeda/article/od_inst/ --path_ss /home/uib/Halimeda/article/ss_image --path_merge /home/uib/Halimeda/article/blob_validation   --iter 1  --ns 12 3 1 2 1 1 1 1 1 1 --od_thr 1
+
+cd /home/uib/image_utils/scripts/
+
+python apply_thr.py
+
+python coverage.py --shape 1024 --path_txt /home/uib/Halimeda/article/od_inst/ --path_out /home/uib/Halimeda/article/od_inst/ --grid 500
