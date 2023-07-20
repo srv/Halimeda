@@ -12,7 +12,7 @@ from skimage.io import imread, imshow, imsave
 
 """
 
-python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/gt_val/gt_SS/ \
+python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/yolov5/projects/halimeda/yolo_large/inference_all_test \
                     --shape 1024 \
                     --sp /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/gt_val/gt_SS/
 

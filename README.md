@@ -1,38 +1,39 @@
 # Halimeda
-Halimeda coverage estimation
+Halimeda incrassata coverage estimation
 
-This repository aims to provide the necessary tools and knowledge to operate our halimeda coverage estimation algorithm.
+ <img src="dataset/OD/test/halimeda_205.JPG" width="250">
+
+This repository aims to provide the necessary tools and knowledge to operate our halimeda incrassata coverage estimation algorithm.
 
 # Installation
 
 To clone the repository do:
 
-git clone --recursive https://github.com/srv/Halimeda.git
+`$ git clone --recursive https://github.com/srv/Halimeda.git` 
 
-or:
+`$ git submodule update --init --recursive`
 
-git clone https://github.com/srv/Halimeda.git
-
-cd object/yolov5
-
-git submodule init
-
-git submodule update
-
-cd SS_Halimeda
-
-git submodule init
-
-git submodule update
-
-# Object detection enviroment installation
-
-cd object_detection
-
-conda create -n <environment-name> --file object_req.txt
-
-## Download object detection model:
-
-https://zenodo.org/record/7611869#.Y_xsFSbMJD8
+`$ git submodule foreach -q --recursive 'branch="$(git config -f $toplevel/.gitmodules submodule.$name.branch)"; git checkout $branch'`
 
 
+## Object detection enviroment installation
+
+`$ cd object_detection`
+
+`$ conda create -n <environment-name> --file object_req.txt`
+
+### Download object detection model:
+
+[Object detection model](https://zenodo.org/record/7611869#.Y_xsFSbMJD8)
+
+## Semantic segmentation installation
+
+`$ cd semantic_segmentation/SS_Halimeda`
+
+`$ conda create -n <environment-name> --file segmentation.yaml`
+
+## Weighted merge ROS implementation:
+ 
+ `$ cd halimeda_detection`
+
+`$ conda create -n <environment-name> --file halimeda_merge.yml`
