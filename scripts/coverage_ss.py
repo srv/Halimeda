@@ -13,6 +13,21 @@ import imageio.v2 as imageio
 '''
 call:
 python coverage.py --shape 1024 --path_im ../halimeda/cthr/ --path_out ../halimeda/coverage --grid 500 --thr 84
+
+python coverage.py --shape 1024 --path_im /mnt/c/Users/haddo/Halimeda/merge/test/merged_weights_yolo_sizes/yolo_XL/weighted_merge/ \
+                   --path_out /mnt/c/Users/haddo/Halimeda/merge/test/merged_weights_yolo_sizes/yolo_XL/weighted_merge/coverage \
+                   --grid 0 --thr 22
+
+
+parser.add_argument('--shape', help='images shape.', type=int)   
+parser.add_argument('--path_im', help='txt input directory.')
+parser.add_argument('--path_out', help='im output directory.')
+parser.add_argument('--grid', default=0, help='grid AxA.')
+parser.add_argument('--thr', help='ss conf thr.', type=int)  
+
+
+
+
 '''
 
 

@@ -19,6 +19,11 @@ python evaluation.py --run_name yolo_XL  --pred_path /mnt/c/Users/haddo/Halimeda
                     --out_path /mnt/c/Users/haddo/Halimeda/merge/test/merged_weights_yolo_sizes/yolo_XL/weighted_merge/  \
                     --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/test/gt --shape 1024
 
+
+python evaluation.py --run_name SS_new_SS_test  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/inference/ \
+                    --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/  \
+                    --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/gt --shape 1024
+
 '''
 
 parser = argparse.ArgumentParser()

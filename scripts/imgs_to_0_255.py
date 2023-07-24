@@ -12,9 +12,9 @@ from skimage.io import imread, imshow, imsave
 
 """
 
-python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/yolov5/projects/halimeda/yolo_large/inference_all_test \
+python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/textura_ok/check/ \
                     --shape 1024 \
-                    --sp /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/gt_val/gt_SS/
+                    --sp /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/textura_ok/imgs_extra/inference
 
 """
 
@@ -35,12 +35,19 @@ grey_list = sorted(os.listdir(in_path))
 
 print("grey_list",grey_list)
 
-grey = np.zeros((len(grey_list), IMG_HEIGHT, IMG_WIDTH), dtype=np.uint8)
+problematic_files=[]
 
 for n, id_ in enumerate(grey_list):
     path = os.path.join(in_path, id_)
     img = imread(path, as_gray = True)
     # print("img is:",img.flatten())
-    print("set is:",set(img.flatten()))
+    # print("set is:",set(img.flatten()))
+    if len(list(set(img.flatten())))<2:
+        print("Something might be wrong with img ",id_)
+        print("set is:",set(img.flatten()))
+        print("BE CAREFUUUUUL")
+        problematic_files.append(id_)
+
+print("Problematic_files are",problematic_files)
     # img_new = img*255
     # imsave(os.path.join(sp, id_), img_new)

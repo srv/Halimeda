@@ -1,0 +1,127 @@
+1) INFERENCE:
+
+python detect.py --weights /mnt/c/Users/haddo/yolov5/projects/halimeda/k-fold_training_2/3/weights/best.pt \
+    --project /mnt/c/Users/haddo/yolov5/projects/halimeda/NEW_TEST --name inference_0/ --data data/halimeda.yaml \
+    --source /mnt/c/Users/haddo/yolov5/datasets/halimeda/NEW_TEST/best/images --conf-thres 0 --iou-thres 0.5 \
+    --save-txt --save-conf --imgsz 1024 
+
+python3 inference.py --run_path /mnt/c/Users/haddo/DL_stack/SS_Halimeda/model/ --data_path /mnt/c/Users/haddo/DL_stack/SS_Halimeda/dataset/NEW_TEST/mejores/imgs --shape 1024
+
+2) COnvertir OD to SS
+A DL_stack/halimeda:
+
+python coverage_od.py --shape 1024 --path_txt /mnt/c/Users/haddo/yolov5/projects/halimeda/NEW_TEST/inference_0/labels/ \
+    --path_out /mnt/c/Users/haddo/yolov5/projects/halimeda/NEW_TEST/inference_0/coverage --grid 500
+
+2.1) COnvertir OD gt to coverage:
+
+python coverage_od.py --shape 1024 --path_txt /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/OD/gt_txts/ \
+    --path_out /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/OD/gt_coverage --grid 500
+
+
+PROBLEMA-> Arreglat per generar el gt de OD en mode bw l'script no estava bé
+
+3)EVAL SS OVER SS:
+
+
+python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/gt/ \
+                    --shape 1024 \
+                    --sp /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/gt_0_255/
+
+python eval_one_thr.py --run_name SS_new_SS_test  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/inference/                     --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/                      --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/gt --shape 1024  
+
+python eval_one_thr.py --run_name OD_new_OD_test  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/OD/inference/                     --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/OD/                      --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/OD/gt_coverage --shape 1024  
+
+
+INFERENCE ALL:
+
+python detect.py --weights /mnt/c/Users/haddo/yolov5/projects/halimeda/k-fold_training_2/3/weights/best.pt \
+    --project /mnt/c/Users/haddo/yolov5/projects/halimeda/NEW_TEST --name inference_all/ --data data/halimeda.yaml \
+    --source /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/images --conf-thres 0 --iou-thres 0.5 \
+    --save-txt --save-conf --imgsz 1024 
+
+python coverage_od.py --shape 1024 --path_txt /mnt/c/Users/haddo/yolov5/projects/halimeda/NEW_TEST/inference_all/labels/ \
+    --path_out /mnt/c/Users/haddo/yolov5/projects/halimeda/NEW_TEST/inference_all/coverage --grid 500
+
+SS:
+python3 inference.py --run_path /mnt/c/Users/haddo/DL_stack/SS_Halimeda/model/ --data_path /mnt/c/Users/haddo/DL_stack/SS_Halimeda/dataset/NEW_TEST/all/imgs --shape 1024
+
+python3 inference.py --run_path /mnt/c/Users/haddo/DL_stack/SS_Halimeda/model/ --data_path /mnt/c/Users/haddo/DL_stack/SS_Halimeda/dataset/NEW_TEST/SS/imgs --shape 1024
+
+
+python eval_one_thr.py --run_name SS_over_val  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/all/inference_OD/                     --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/all/                     --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/all/gt --shape 1024  
+
+
+
+python eval_one_thr.py --run_name SS_new_test_all  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/all/inference_SS/                     --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/all/                     --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/all/gt --shape 1024  
+
+
+python eval_one_thr.py --run_name OD_new_test_all  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/all/inference_OD/                     --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/all/inference_OD    --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/all/gt --shape 1024  
+
+
+
+python3 inference.py --run_path /mnt/c/Users/haddo/DL_stack/SS_Halimeda/model/ --data_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/textura_ok/imgs_extra --shape 1024 --path_out /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/textura_ok
+
+
+
+CHECK EVAL OLD:
+
+C:\Users\haddo\DL_stack\Halimeda\merge\val\inference\ss
+
+
+python eval_one_thr.py --run_name SS_over_val  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/val/inference/ss/ \
+--out_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/val/inference/metrics_ss/  --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/val/gt --shape 1024  -- thr 82
+
+python eval_one_thr.py --run_name OD_over_val  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/val/inference/only_od/ --thr 82 \
+--out_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/val/inference/metrics_only_od/  --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/val/gt_od --shape 1024  
+
+
+python eval_one_thr.py --run_name SS_over_SS  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/val/inference/only_ss/ --thr 82 \
+--out_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/val/inference/metrics_only_ss/  --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/val/gt_ss --shape 1024  
+
+
+BLOBS:
+
+python merge_blobs.py --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/OD_pred --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/SS_pred \
+--path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/merge  --iter 1  --ns 12 3 1 2 1 1 1 1 1 1
+
+python coverage_od.py --shape 1024 --path_txt /mnt/c/Users/haddo/yolov5/projects/halimeda/NEW_TEST/inference_selec/labels/ \
+    --path_out /mnt/c/Users/haddo/yolov5/projects/halimeda/NEW_TEST/inference_selec/coverage --grid 500
+
+
+python eval_one_thr.py --run_name AUC_merge  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/AUC_merge/ --thr 39 \
+--out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec  --gt_path  /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/gt --shape 1024  
+
+
+python w_merge.py   --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/OD_cov \
+                    --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/SS_pred \
+                    --path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/w_merge
+
+
+
+
+python eval_one_thr.py --run_name w_merge  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/w_merge/ --thr 39 \
+--out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec  --gt_path  /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/gt --shape 1024  
+
+
+
+python eval_one_thr.py --run_name AUC_merge  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/AUC_merge/ --thr 39 \
+--out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec  --gt_path  /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/gt --shape 1024  
+
+python eval_one_thr.py --run_name only_OD  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/only_OD/pred --thr 39 \
+--out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec  --gt_path  /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/only_OD/gt_OD  --shape 1024  
+
+
+python eval_one_thr.py --run_name only_SS  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/only_SS/pred --thr 39 \
+--out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec  --gt_path  /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/only_SS/gt_SS  --shape 1024  
+
+
+python eval_one_thr.py --run_name SS_over_all  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/SS_pred --thr 39 \
+--out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec  --gt_path  /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/gt  --shape 1024  
+
+
+python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/gt \
+                    --shape 1024 \
+                    --sp /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/selec/gt
+
+

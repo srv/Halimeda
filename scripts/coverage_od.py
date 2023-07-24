@@ -13,6 +13,12 @@ import imageio.v2 as imageio
 '''
 call:
 python coverage.py --shape 1024 --path_txt ../halimeda/cthr/ --path_out ../halimeda/coverage --grid 500
+
+
+python coverage_od.py --shape 1024 --path_txt /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/OD/gt_txts/ \
+    --path_out /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/OD/gt_coverage --grid 500
+
+
 '''
 
 
@@ -103,7 +109,10 @@ def main():
 
                 for j in range(top, bottom):
                     for k in range(left, right):
-                        aux_im[j, k] = int(255*instance[1])
+                        if len(instance) == 5:
+                            aux_im[j, k] = int(255)
+                        elif len(instance) == 6:
+                            aux_im[j, k] = int(255*instance[1])
 
             cov_pix = (np.sum(aux_im != 0)/np.size(aux_im))*100
             cov_pix_list.append(cov_pix)
