@@ -54,9 +54,9 @@ https://stackoverflow.com/questions/66977227/could-not-load-dynamic-library-libc
 
 To install a specific version, the last 2 commands would be replaced with
 
-$ sudo apt-get install libcudnn8=${cudnn_version}-1+${cuda_version}`
+`$ sudo apt-get install libcudnn8=${cudnn_version}-1+${cuda_version}`
 
-$ sudo apt-get install libcudnn8-dev=${cudnn_version}-1+${cuda_version}`
+`$ sudo apt-get install libcudnn8-dev=${cudnn_version}-1+${cuda_version}`
 
 In our case:
 
