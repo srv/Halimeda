@@ -62,6 +62,10 @@ In our case:
 
 `$ sudo apt-get install libcudnn8=8.2.4.*` 
 
+if code does not find cuda or cudnn paths:
+
+`$ sudo ldconfig /home/olivia/anaconda3/envs/ss/lib/`
+
 ### Download object detection model:
 
 [Object detection model](https://zenodo.org/record/7611869#.Y_xsFSbMJD8)
