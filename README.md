@@ -22,6 +22,16 @@ To clone the repository do:
 
 `$ conda create -n <environment-name> --file object_req.txt`
 
+### Download object detection model:
+
+[Object detection model](https://zenodo.org/record/7611869#.Y_xsFSbMJD8)
+
+## Semantic segmentation installation
+
+`$ cd semantic_segmentation/SS_Halimeda`
+
+`$ conda create -n <environment-name> --file segmentation.yaml`
+
 `$ pip install numba`
 
 `$ pip install tensorflow==2.8`
@@ -65,16 +75,6 @@ In our case:
 if code does not find cuda or cudnn paths:
 
 `$ sudo ldconfig /home/olivia/anaconda3/envs/ss/lib/`
-
-### Download object detection model:
-
-[Object detection model](https://zenodo.org/record/7611869#.Y_xsFSbMJD8)
-
-## Semantic segmentation installation
-
-`$ cd semantic_segmentation/SS_Halimeda`
-
-`$ conda create -n <environment-name> --file segmentation.yaml`
 
 ## Weighted merge ROS implementation:
  
