@@ -21,6 +21,7 @@ parser.add_argument('--path_ss_gt', help='path to the ss gt folder.', type=str)
 parser.add_argument('--path_out', help='path to the ss gt folder.', type=str)
 parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=84)
 parser.add_argument('--iter', help='n iterations for erode dilation', type=int, default=1)
+parser.add_argument('--od_thr', help=' min od thr ', type=int, default=1)
 parsed_args = parser.parse_args(sys.argv[1:])
 
 ss_thr = parsed_args.ss_thr
@@ -29,6 +30,7 @@ path_od = parsed_args.path_od
 path_out = parsed_args.path_out
 path_ss_gt = parsed_args.path_ss_gt
 iter = parsed_args.iter
+od_thr = parsed_args.od_thr
 
 
 def main():
@@ -62,7 +64,7 @@ def main():
 
         # DELETE INSTANCES WITH CONF < 1
         for i, instance in enumerate(instances_od):
-            if instance[1] < 0.01:
+            if instance[1] < (od_thr/100):
                 break
         instances_od = instances_od[:i]
 
@@ -166,7 +168,7 @@ def main():
 
     mets = np.hstack(metrics_list_list)
     df = pd.DataFrame (mets)
-    filepath = os.path.join(path_out, 'n_'+str(iter)+'.xlsx')
+    filepath = os.path.join(path_out, 'n_'+str(iter)+ '_' + str(od_thr) + '_' +'.xlsx')
     df.to_excel(filepath, index=False)
 
 def zero_division(n, d):
