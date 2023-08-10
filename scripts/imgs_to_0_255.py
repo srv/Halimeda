@@ -12,9 +12,9 @@ from skimage.io import imread, imshow, imsave
 
 """
 
-python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/textura_ok/check/ \
-                    --shape 1024 \
-                    --sp /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_TEST/SS/textura_ok/imgs_extra/inference
+    python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/gt_all_val \
+                        --shape 1024 \
+                        --sp /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/gt_all_val/
 
 """
 
@@ -40,14 +40,25 @@ problematic_files=[]
 for n, id_ in enumerate(grey_list):
     path = os.path.join(in_path, id_)
     img = imread(path, as_gray = True)
+    # img=cv2.imread(path,2)
     # print("img is:",img.flatten())
     # print("set is:",set(img.flatten()))
-    if len(list(set(img.flatten())))<2:
+    if 255 not in set(img.flatten()):
         print("Something might be wrong with img ",id_)
         print("set is:",set(img.flatten()))
+        print("-------------------------")
+        print("np unique is:",np.unique(img.flatten()))
         print("BE CAREFUUUUUL")
+        # img_new = img*255
+        # imsave(os.path.join(sp, id_), img_new)
         problematic_files.append(id_)
+    else:
+        print("this one should be ok!!")
+        print("set is:",set(img.flatten()))
+
 
 print("Problematic_files are",problematic_files)
+print(" the number of Problematic_files is",len(problematic_files))
+
     # img_new = img*255
     # imsave(os.path.join(sp, id_), img_new)

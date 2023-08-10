@@ -11,9 +11,9 @@ import imageio.v2 as imageio
 """
 Call Example:
 
-python /mnt/c/Users/haddo/Halimeda/scripts/w_merge.py   --path_od /home/uib/Halimeda/temp_od/ \
-                    --path_ss /home/uib/Halimeda/temp_ss/ \
-                    --path_merge /home/uib/Halimeda/temp_result
+python w_merge.py   --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/OD_over_all_test \
+                    --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/SS_over_all_test/ \
+                    --path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/w_merge_test
 
 """
 
