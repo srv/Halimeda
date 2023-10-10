@@ -12,9 +12,9 @@ from skimage.io import imread, imshow, imsave
 
 """
 
-    python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/gt_all_val \
+    python imgs_to_0_255.py --in_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/all_test/gt \
                         --shape 1024 \
-                        --sp /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/gt_all_val/
+                        --sp /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/all_test/gt
 
 """
 
@@ -49,7 +49,7 @@ for n, id_ in enumerate(grey_list):
         print("-------------------------")
         print("np unique is:",np.unique(img.flatten()))
         print("BE CAREFUUUUUL")
-        # img_new = img*255
+        img_new = img*255
         # imsave(os.path.join(sp, id_), img_new)
         problematic_files.append(id_)
     else:
