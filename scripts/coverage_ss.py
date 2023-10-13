@@ -18,6 +18,10 @@ python coverage.py --shape 1024 --path_im /mnt/c/Users/haddo/Halimeda/merge/test
                    --path_out /mnt/c/Users/haddo/Halimeda/merge/test/merged_weights_yolo_sizes/yolo_XL/weighted_merge/coverage \
                    --grid 0 --thr 22
 
+python coverage_ss.py --shape 1024 --path_im /mnt/c/Users/haddo/DL_stack/Halimeda/AUC_merge/inference_all_test/ \
+                   --path_out /mnt/c/Users/haddo/DL_stack/Halimeda/AUC_merge/coverage \
+                   --grid 500 --thr 128
+
 
 parser.add_argument('--shape', help='images shape.', type=int)   
 parser.add_argument('--path_im', help='txt input directory.')

@@ -15,6 +15,11 @@ python w_merge.py   --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_D
                     --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/SS_over_all_test/ \
                     --path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/w_merge_test
 
+
+python w_merge.py   --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/inference_test/OD/all \
+                    --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/inference_test/SS/all/ \
+                    --path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/inference_test/
+
 """
 
 def main():
@@ -35,8 +40,8 @@ def main():
     list_od =  os.listdir(path_od)
     list_ss = os.listdir(path_ss)
 
-    w_od=0.8 # if range not 0-255 change to 0.2*255
-    w_ss=0.2
+    w_od=0.85 # if range not 0-255 change to 0.2*255
+    w_ss=0.15
 
     w_folder_name="weighted_merge"
 

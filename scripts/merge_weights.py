@@ -15,6 +15,10 @@ python merge_outs.py --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/combined_mod
                     --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_test/inference_SS/all_test/ \
                     --path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/combined_model/inference_test/combined_weights_swp/
 
+python merge_weights.py --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/inference_val/OD/ \
+                    --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/inference_val/SS/ \
+                    --path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/weighted_merge/w_sweep/
+                    
 """
 
 def main():

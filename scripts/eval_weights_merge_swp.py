@@ -21,13 +21,14 @@ from matplotlib.pyplot import cm
 #                     --shape 1024"
 
 evaluating_instruction="python /mnt/c/Users/haddo/DL_stack/object_detection_utils/metrics/eval_ss2.py \
-                    --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/w_merge_swp/{}/ \
-                    --gt_im_path  /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/gt_all_val/  \
-                    --run_name w_merge_{} --save_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/w_merge_swp/{}/ --shape 1024"
+                    --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/weighted_merge/w_sweep/{}/ \
+                    --gt_im_path  /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/all_val/gt/  \
+                    --run_name w_merge_{} --save_path /mnt/c/Users/haddo/DL_stack/Halimeda/weighted_merge/w_sweep/{}/ --shape 1024"
 
-input_dir="/mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/w_merge_swp/"
+input_dir="/mnt/c/Users/haddo/DL_stack/Halimeda/weighted_merge/w_sweep/"
 
-folders=[0.75,0.8,0.85,0.9,0.95,1]
+# folders=[0.75,0.8,0.85,0.9,0.95,1]
+folders=os.listdir(input_dir)
 
 for folder in folders:
     inference_folder=os.path.join(input_dir,str(folder))

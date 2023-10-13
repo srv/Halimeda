@@ -16,6 +16,16 @@ CALL:
 python merge_blobs.py --path_od ../merge/test_im/od/labels/ --path_ss ../merge/test_im/ss/pred/ --path_merge ../merge/test_im/merged_1/  --iter 1  --ns 12 3 1 2 1 1 1 1 1 1
 
 
+python merge_blobs.py --path_od ../inference_test/OD/all_labels/ --path_ss ../inference_test/SS/all/ \
+    --path_merge ../AUC_merge/inference_all_test/  --iter 1  --ns 20	3	1	1	1	1	1	1	1	1
+
+    
+    
+python merge_blobs.py --path_od ../inference_test/OD/all_labels/ --path_ss ../inference_test/SS/all/ \
+    --path_merge ../AUC_merge/inference_all_test_n_only_SS/  --iter 1  --ns 20	 91	1	1	1	3	1	1	1	1	1
+
+    
+   
 
 PRINT:
 cv2.imshow("erosion", erosion)

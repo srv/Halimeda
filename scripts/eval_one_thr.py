@@ -32,8 +32,18 @@ python eval_one_thr.py --run_name eval_low9_da_test_thr_81  --pred_path /mnt/c/U
 
 
 python eval_one_thr.py --run_name w_merge_test  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/w_merge_test/ \
-                        --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/w_merge_test --thr 35  \
+                        --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/w_merge_test --thr 0  \
                         --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/gt_all_test/ --shape 1024  
+
+python eval_one_thr.py --run_name AUC_merge_test_n_SS_val  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/AUC_merge/inference_all_test_n_only_SS/ \
+                        --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/AUC_merge/inference_all_test_n_only_SS --thr 127  \
+                        --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/all_test/gt/ --shape 1024  
+
+                    
+
+python eval_one_thr.py --run_name w_merge_test_0_85  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/inference_test/weighted_merge/ \
+                        --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/weighted_merge --thr 25  \
+                        --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/all_test/gt/ --shape 1024 
 
 
  """

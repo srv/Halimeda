@@ -10,6 +10,10 @@ from natsort import natsorted
 """
 CALL: 
 python od_in_ss.py --path_od path/to/od/preds --path_ss_gt path/to/ss_gts --path_out path/to/out
+
+python od_in_ss.py --path_od ../inference_val/only_SS_val/OD_labels/ --path_ss_gt ../dataset/SS/val_gt/ --path_out ../AUC_merge/hist_SS_val/
+
+
 """
 
 parser = argparse.ArgumentParser()

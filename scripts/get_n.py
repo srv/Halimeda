@@ -12,6 +12,14 @@ from natsort import natsorted
 """
 CALL: 
 get_n.py --path_od ../merge/val_n/od/labels/ --path_ss ../merge/val_n/ss/pred/ --path_ss_gt ../merge/val_n/gt/ --path_out ../merge/val_n/merged/cthr1/ --iter 1
+
+python get_n.py --path_od ../inference_val/OD_labels/ \
+    --path_ss ../inference_val/SS/ --path_ss_gt ../dataset/all_val/gt/ --path_out ../AUC_merge/cthr0/ --iter 1
+
+
+python get_n.py --path_od ../inference_val/only_SS_val/OD_labels/ \
+    --path_ss ../inference_val/only_SS_val/SS  --path_ss_gt ../dataset/SS/val_gt --path_out ../AUC_merge/only_SS_val/ --iter 1    
+
 """
 
 parser = argparse.ArgumentParser()
@@ -21,7 +29,7 @@ parser.add_argument('--path_ss_gt', help='path to the ss gt folder.', type=str)
 parser.add_argument('--path_out', help='path to the ss gt folder.', type=str)
 parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=84)
 parser.add_argument('--iter', help='n iterations for erode dilation', type=int, default=1)
-parser.add_argument('--od_thr', help=' min od thr ', type=int, default=1)
+parser.add_argument('--od_thr', help=' min od thr ', type=int, default=0)
 parsed_args = parser.parse_args(sys.argv[1:])
 
 ss_thr = parsed_args.ss_thr
