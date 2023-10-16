@@ -41,8 +41,8 @@ python eval_one_thr.py --run_name AUC_merge_test_n_SS_val  --pred_path /mnt/c/Us
 
                     
 
-python eval_one_thr.py --run_name w_merge_test_0_7  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/weighted_merge/best_0.7/ \
-                        --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/weighted_merge --thr 50  \
+python eval_one_thr.py --run_name w_merge_test  --pred_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/weighted_merge/yolo_nano/ \
+                        --out_path /mnt/c/Users/haddo/DL_stack/Halimeda/merge/weighted_merge --thr 25  \
                         --gt_path /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/all_test/gt/ --shape 1024 
 
 

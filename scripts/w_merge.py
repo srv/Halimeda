@@ -16,9 +16,9 @@ python w_merge.py   --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_D
                     --path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/dataset/NEW_DATASET/INFERENCE_best_models/w_merge_test
 
 
-python w_merge.py   --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/inference_test/OD/yolo_nano_all_test \
-                    --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/inference_test/SS/all/ \
-                    --path_merge  /mnt/c/Users/haddo/DL_stack/Halimeda/weighted_merge/yolo_nano
+python w_merge.py   --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/inference/test/OD/yolo_nano_all_test \
+                    --path_ss /mnt/c/Users/haddo/DL_stack/Halimeda/inference/test/SS/all/ \
+                    --path_merge  /mnt/c/Users/haddo/DL_stack/Halimeda/merge/weighted_merge/yolo_nano
 
 """
 
