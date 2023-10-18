@@ -27,9 +27,9 @@ cv2.waitKey()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--path_od', help='path to the od output folder.', type=str)  
-parser.add_argument('--od_thr', help='semantic segmentation gray scale thr.', type=float, default=0.32)
+parser.add_argument('--od_thr', help='semantic segmentation gray scale thr.', type=float, default=0.317)
 parser.add_argument('--path_ss', help='path to the ss output folder.', type=str)
-parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=84)
+parser.add_argument('--ss_thr', help='semantic segmentation gray scale thr.', type=int, default=123)
 parser.add_argument('--path_merge', help='path to merge folder', type=str)
 parser.add_argument('--iter', help='n iterations for erode dilation', type=int, default=1)
 parser.add_argument('--ns', nargs="+", type=int)
@@ -51,7 +51,7 @@ def main():
 
     if  len(list_od) != len(list_ss):
         print("¡PREDS NOT SAME LENGTH!")
-        exit()
+        exit()     
 
     for idx in range(len(list_od)):
 
@@ -64,6 +64,7 @@ def main():
         image_ss_gray = cv2.imread(file_path_ss, cv2.IMREAD_GRAYSCALE)  # read ss image
         instances_od = getInstances(file_path_od, image_ss_gray.shape)  # read od predictions
         instances_od = sorted(instances_od, key=lambda conf: conf[1], reverse=True)
+        
 
         # INIT FINAL COVERAGE LABEL MAP
         cov_merged = np.zeros(image_ss_gray.shape, dtype="uint8")
@@ -136,8 +137,11 @@ def main():
             elif 90<auc<=100 and n_list[0]>ns[9]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
 
-        cov_merged = cov_merged*255 # TODO PARAMETRITZAR!!
-
+        cov_merged = cov_merged*255 
+        
+        if not os.path.exists(path_merge):
+            os.makedirs(path_merge)
+        
         file_path_merge=os.path.join(path_merge,list_ss[idx])  # takes od name
         imageio.imsave(file_path_merge, cov_merged) 
 

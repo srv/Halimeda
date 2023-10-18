@@ -13,6 +13,12 @@ import imageio.v2 as imageio
 '''
 call:
 python coverage.py --shape 1024 --path_txt ../halimeda/cthr/ --path_out ../halimeda/coverage --grid 500
+
+
+python coverage_od.py --shape 1024 --path_txt /home/uib/Halimeda/dataset/NEW_DATASET/OD/gt_txt/ \
+    --path_out /home/uib/Halimeda/dataset/NEW_DATASET/OD/gt_coverage --grid 500
+
+
 '''
 
 
@@ -41,7 +47,7 @@ def getInstances(file):
             y = float(splitLine[2])
             w = float(splitLine[3])
             h = float(splitLine[4])
-            inst = (idClass, x, y, w, h)  
+            inst = (idClass, x, y, w, h)
             bbox=yolo_to_xml_bbox([x, y, w, h], 1024, 1024)
             inst = (idClass, bbox[0], bbox[1], bbox[2], bbox[3])
         elif len(splitLine) == 6:
@@ -50,7 +56,7 @@ def getInstances(file):
             y = float(splitLine[3])
             w = float(splitLine[4])
             h = float(splitLine[5])
-            inst = (idClass, confidence, x, y, w, h)   
+            inst = (idClass, confidence, x, y, w, h)
             bbox=yolo_to_xml_bbox([x, y, w, h], 1024, 1024)
             inst = (idClass, confidence, bbox[0], bbox[1], bbox[2], bbox[3])
         instances.append(inst)
@@ -69,7 +75,7 @@ def getBoxFromInst(inst):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--shape', help='images shape.', type=int)   
+    parser.add_argument('--shape', help='images shape.', type=int)
     parser.add_argument('--path_txt', help='txt input directory.')
     parser.add_argument('--path_out', help='im output directory.')
     parser.add_argument('--grid', default=0, help='grid AxA.')
@@ -84,7 +90,7 @@ def main():
         os.mkdir(path_out)
     except:
         print("")
-    
+
     test_cases = list()
     cov_pix_list = list()
     cov_grid_list = list()
@@ -93,7 +99,7 @@ def main():
         if re.search("\.(txt)$", file):  # if the file is a txt
             name, ext = os.path.splitext(file)
             test_cases.append(name)
-            aux_im = np.zeros([shape, shape], dtype=np.uint8)  # auxiliary black image   
+            aux_im = np.zeros([shape, shape], dtype=np.uint8)  # auxiliary black image
             file_path = os.path.join(path_txt, file)
             instances = getInstances(file_path)
 
@@ -103,7 +109,10 @@ def main():
 
                 for j in range(top, bottom):
                     for k in range(left, right):
-                        aux_im[j, k] = int(255*instance[1])
+                        if len(instance) == 5:
+                            aux_im[j, k] = int(255)
+                        elif len(instance) == 6:
+                            aux_im[j, k] = int(255*instance[1])
 
             cov_pix = (np.sum(aux_im != 0)/np.size(aux_im))*100
             cov_pix_list.append(cov_pix)
@@ -111,8 +120,8 @@ def main():
             if grid > 0:
                 count = 0
                 total = grid*grid
-                step_h = shape/grid  
-                step_w = shape/grid   
+                step_h = shape/grid
+                step_w = shape/grid
                 index_h = list()
                 index_w = list()
 

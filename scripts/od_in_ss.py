@@ -9,7 +9,7 @@ from natsort import natsorted
 
 """
 CALL: 
-python get_n.py --path_od path/to/od/preds --path_ss_gt path/to/ss_gts --path_out path/to/out
+python od_in_ss.py --path_od path/to/od/preds --path_ss_gt path/to/ss_gts --path_out path/to/out
 """
 
 parser = argparse.ArgumentParser()
