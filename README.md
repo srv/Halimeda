@@ -1,7 +1,10 @@
 # Halimeda
 Halimeda incrassata coverage estimation
 
- <img src="dataset/OD/test/halimeda_205.JPG" width="250">
+<div style="display: flex; justify-content: center;">
+    <img src="dataset/OD/all/halimeda_205.JPG" width="250" style="margin: 5px;">
+    <img src="dataset/SS/trainval/PA210315.JPG" width="250" style="margin: 5px;">
+</div>
 
 This repository aims to provide the necessary tools and knowledge to operate our halimeda incrassata coverage estimation algorithm.
 
