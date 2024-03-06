@@ -33,10 +33,10 @@ To clone the repository do:
 
 `$ cd semantic_segmentation/SS_Halimeda`
 
-`$ conda create -n <environment-name> --file segmentation.yaml`
+`$ conda env create --file segmentation.yaml`
 
 ## Weighted merge ROS implementation:
  
  `$ cd halimeda_detection`
 
-`$ conda create -n <environment-name> --file halimeda_merge.yml`
+`$ conda env create --file halimeda_merge.yml`
