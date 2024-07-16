@@ -59,23 +59,44 @@ def main():
         print("working on:" + list_ss[idx])
         file_path_od = os.path.join(path_od,list_od[idx])
         file_path_ss = os.path.join(path_ss,list_ss[idx])
-        
-        # LOAD PREDS
+
+        # Load Predictions from OD and SS
         image_ss_gray = cv2.imread(file_path_ss, cv2.IMREAD_GRAYSCALE)  # read ss image
         instances_od = getInstances(file_path_od, image_ss_gray.shape)  # read od predictions
         instances_od = sorted(instances_od, key=lambda conf: conf[1], reverse=True)
-        
+        cov_merged = np.zeros(image_ss_gray.shape, dtype="uint8")  # Initialize coverage map
 
-        # INIT FINAL COVERAGE LABEL MAP
-        cov_merged = np.zeros(image_ss_gray.shape, dtype="uint8")
+        ## SEMANTIC SEGMENTATION Section
+        # Binarize Semantic preds
+        image_ss_bw = cv2.threshold(image_ss_gray, ss_thr, 255, cv2.THRESH_BINARY)[1]
 
-        # DELETE INSTANCES WITH CONF < 1
+        # Morphological Operations
+        kernel = np.ones((5, 5), np.uint8)
+        erosion = cv2.erode(image_ss_bw, kernel, iterations=iter)
+        dilation = cv2.dilate(erosion, kernel, iterations=iter)
+
+        # Blobs Clustering Detection
+        print("detecting blobs")
+        n_labels, label_map, values, centroid = cv2.connectedComponentsWithStats(dilation, 4, cv2.CV_32S)
+
+        # Filtering detected blobs by pixel coverage
+        print("filtering blobs")
+        for i in range(1, n_labels):
+            area = values[i, cv2.CC_STAT_AREA]  
+            if area < 200:
+                label_map[np.where(label_map==i)] = 0
+
+        print("validating blobs")
+        blob_set = set(label_map.flat)
+        blob_set.pop()
+
+        ## OD Instance Thresholding
+        # Delete OD instances with confidence < 1%
         for i, instance in enumerate(instances_od):
-            if instance[1] < 0.01: 
-                break
-        instances_od = instances_od[:i]
+            if instance[1] < 0.01:
+                instances_od = instances_od[:i]
 
-        # PRINT BBOS OF OD PREDICTIONS WITH ENOUGH CONFIDENCE
+        # Save regions having OD predictions with enough confiddence (Coverage merging section)
         for instance in instances_od:
             if instance[1] > od_thr:
                 box = getBoxFromInst(instance)
@@ -83,61 +104,39 @@ def main():
                 for j in range(top, bottom):
                     for k in range(left, right):
                         cov_merged[j, k] = 1
-    
-        # BINARIZE SEMANTIC RPEDS
-        image_ss_bw = cv2.threshold(image_ss_gray, ss_thr, 255, cv2.THRESH_BINARY)[1]
-
-        # MORPHOLOGICAL OPERATIONS
-        kernel = np.ones((5, 5), np.uint8)
-        erosion = cv2.erode(image_ss_bw, kernel, iterations=iter) 
-
-        # BLOB DETECTION
-        print("detecting blobs")
-        n_labels, label_map, values, centroid = cv2.connectedComponentsWithStats(erosion,4,cv2.CV_32S)
-
-        print("filtering blobs")
-        for i in range(1, n_labels):
-            area = values[i, cv2.CC_STAT_AREA]  
-            if area<200:
-                label_map[np.where(label_map==i)]=0
-
-        print("validating blobs")
-        blob_set = set(label_map.flat)
-        blob_set.pop()
 
         for i, b in enumerate(blob_set):
             print("working on blob " + str(i+1) + "/" + str(len(blob_set)))
 
             blob_map = np.zeros(image_ss_gray.shape, dtype="uint8")
-            blob_map[np.where(label_map==b)]=1
-            blob_map = cv2.dilate(blob_map, kernel, iterations=iter)
+            blob_map[np.where(label_map==b)] = 1
 
             cov_list, n_list, sum_list = get_validation(blob_map, instances_od)
 
             auc = trapz(cov_list, dx=1)
 
-            if  0<=auc<=10 and n_list[0]>ns[0]:
+            if  0 <= auc <= 10 and n_list[0] > ns[0]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
-            elif 10<auc<=20 and n_list[0]>ns[1]:
+            elif 10 < auc <= 20 and n_list[0] > ns[1]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
-            elif 20<auc<=30 and n_list[0]>ns[2]:
+            elif 20 < auc <= 30 and n_list[0] > ns[2]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
-            elif 30<auc<=40 and n_list[0]>ns[3]:
+            elif 30 < auc <= 40 and n_list[0] > ns[3]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
-            elif 40<auc<=50 and n_list[0]>ns[4]:
+            elif 40 < auc <= 50 and n_list[0] > ns[4]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
-            elif 50<auc<=60 and n_list[0]>ns[5]:
+            elif 50 < auc <= 60 and n_list[0] > ns[5]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
-            elif 60<auc<=70 and n_list[0]>ns[6]:
+            elif 60 < auc <= 70 and n_list[0] > ns[6]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
-            elif 70<auc<=80 and n_list[0]>ns[7]:
+            elif 70 < auc <= 80 and n_list[0] > ns[7]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
-            elif 80<auc<=90 and n_list[0]>ns[8]:
+            elif 80 < auc <= 90 and n_list[0] > ns[8]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
-            elif 90<auc<=100 and n_list[0]>ns[9]:
+            elif 90 < auc <= 100 and n_list[0] > ns[9]:
                 cov_merged = np.clip(cov_merged + blob_map, 0, 1)
 
-        cov_merged = cov_merged*255 
+        cov_merged = cov_merged * 255 
         
         if not os.path.exists(path_merge):
             os.makedirs(path_merge)
@@ -145,7 +144,11 @@ def main():
         file_path_merge=os.path.join(path_merge,list_ss[idx])  # takes od name
         imageio.imsave(file_path_merge, cov_merged) 
 
-
+"""
+Function: get_validation
+This function is in charge of getting Object Detection instances that overlap with a 
+given blob.
+"""
 def get_validation(blob, instances):
 
     # GET INSTANCES THAT OVERLAP WITH BLOB
@@ -156,7 +159,7 @@ def get_validation(blob, instances):
         (left, top, right, bottom) = (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
         for j in range(top, bottom):
             if found == False:
-                for k in range(left,right):
+                for k in range(left, right):
                     if blob[j, k] == 1:
                         inst_blob.append(inst)
                         found = True
@@ -167,15 +170,15 @@ def get_validation(blob, instances):
     cov_list = list()
     n_list = list()
     sum_list = list()
-    for thr in tqdm(range(0,100,1)):
-        inst_thr= list()
+    for thr in tqdm(range(0, 100, 1)):
+        inst_thr = list()
         for inst in inst_blob:
-            if inst[1]>(thr/100):
+            if inst[1] > (thr / 100):
                 inst_thr.append(inst)
         n, sum = get_aa(inst_thr)
         n_list.append(n)
         sum_list.append(sum)
-        cov = get_coverage(blob,inst_thr)
+        cov = get_coverage(blob, inst_thr)
         cov_list.append(cov)
     return cov_list, n_list, sum_list
 
@@ -190,10 +193,10 @@ def get_coverage(map, instances):
         (left, top, right, bottom) = (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
         for j in range(top, bottom):
             for k in range(left, right):
-                if map2[j,k] ==1:
+                if map2[j,k] == 1:
                     count = count+1
                     map2[j,k] = 0      
-    coverage = count/size
+    coverage = count / size
     return coverage
 
 

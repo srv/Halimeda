@@ -119,6 +119,6 @@ data = {'Run': [run_name], 'thr': [thr_best], 'acc': [acc_best], 'prec': [prec_b
 df = pd.DataFrame(data)
 print(df)
 
-df.to_excel(os.path.join(save_path,'metrics.xlsx'))
+df.to_excel(os.path.join(save_path, 'metrics.xlsx'))
 
 

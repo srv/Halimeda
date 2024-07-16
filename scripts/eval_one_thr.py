@@ -72,24 +72,37 @@ for n, id_ in enumerate(grey_list):
 
 # gt_list = sorted(os.listdir(gt_path))
 # gt_list=sorted([file for file in os.listdir(gt_path) if os.path.isfile(os.path.join(gt_path,file))])
-gt_list=natsorted([file for file in os.listdir(gt_path) if os.path.isfile(os.path.join(gt_path,file)) and file.lower().endswith(tuple(image_extensions))])
+gt_list = natsorted([file for file in os.listdir(gt_path) if os.path.isfile(os.path.join(gt_path,file)) and file.lower().endswith(tuple(image_extensions))])
 
 img = imread(os.path.join(pred_path, grey_list[0]))
 gt = np.zeros((len(gt_list), shape, shape), dtype=np.uint8)
 for n, id_ in enumerate(gt_list):
     path = os.path.join(gt_path, id_)
-    img = imread(path,as_gray = True)
+    # img = imread(path,as_gray = True)
+    img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     img = resize(img, (shape, shape), mode='constant', preserve_range=True)
     gt[n] = img
 
 grey_flat = grey.flatten()
 gt_flat = gt.flatten()
-gt_flat = np.where(gt_flat>127, 1, 0)
+gt_flat = np.where(gt_flat > 127, 1, 0)
 zeros = np.count_nonzero(gt_flat == 0)
 ones = np.count_nonzero(gt_flat == 1)
 
 bw_flat = np.where(grey_flat>thr, 1, 0)
-TN, FP, FN, TP = metrics.confusion_matrix(gt_flat,bw_flat).ravel()
+try:
+    n_classes = 2 # Binaric segmentation
+    y = n_classes * gt_flat + bw_flat
+    y = np.bincount(y, minlength=n_classes*n_classes)
+    matrix_confusion = y.reshape(n_classes, n_classes)
+    TN, FP, FN, TP = matrix_confusion.ravel()
+    is_finished = True
+except ValueError as e:
+    is_finished = False
+    print(e)
+    print(f'GTS = {np.unique(gt_flat)}, pred = {np.unique(bw_flat)}')
+    print(f'Y = {y}')
+# TN, FP, FN, TP = metrics.confusion_matrix(gt_flat,bw_flat).ravel()
 
 recall = TP/(TP+FN)
 precision = TP/(TP+FP)

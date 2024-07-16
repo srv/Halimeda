@@ -48,16 +48,16 @@ def getInstances(file):
             w = float(splitLine[3])
             h = float(splitLine[4])
             inst = (idClass, x, y, w, h)
-            bbox=yolo_to_xml_bbox([x, y, w, h], 1024, 1024)
+            bbox = yolo_to_xml_bbox([x, y, w, h], 1024, 1024)
             inst = (idClass, bbox[0], bbox[1], bbox[2], bbox[3])
         elif len(splitLine) == 6:
-            confidence = float(splitLine[1])
-            x = float(splitLine[2])
-            y = float(splitLine[3])
-            w = float(splitLine[4])
-            h = float(splitLine[5])
+            confidence = float(splitLine[5])
+            x = float(splitLine[1])
+            y = float(splitLine[2])
+            w = float(splitLine[3])
+            h = float(splitLine[4])
             inst = (idClass, confidence, x, y, w, h)
-            bbox=yolo_to_xml_bbox([x, y, w, h], 1024, 1024)
+            bbox = yolo_to_xml_bbox([x, y, w, h], 1024, 1024)
             inst = (idClass, confidence, bbox[0], bbox[1], bbox[2], bbox[3])
         instances.append(inst)
     fh1.close()
@@ -112,22 +112,22 @@ def main():
                         if len(instance) == 5:
                             aux_im[j, k] = int(255)
                         elif len(instance) == 6:
-                            aux_im[j, k] = int(255*instance[1])
+                            aux_im[j, k] = int(255 * instance[1])
 
-            cov_pix = (np.sum(aux_im != 0)/np.size(aux_im))*100
+            cov_pix = (np.sum(aux_im != 0) / np.size(aux_im)) * 100
             cov_pix_list.append(cov_pix)
 
             if grid > 0:
                 count = 0
-                total = grid*grid
-                step_h = shape/grid
-                step_w = shape/grid
+                total = grid * grid
+                step_h = shape / grid
+                step_w = shape / grid
                 index_h = list()
                 index_w = list()
 
                 for i in range(1, grid):
-                    index_h.append(int(step_h*i))
-                    index_w.append(int(step_w*i))
+                    index_h.append(int(step_h * i))
+                    index_w.append(int(step_w * i))
 
                 split1 = np.array_split(aux_im, index_h)
 
@@ -141,7 +141,7 @@ def main():
                 cov_grid = (count/total)*100
                 cov_grid_list.append(cov_grid)
 
-            save_path = os.path.join(path_out, name + "_cov" + ".jpg")
+            save_path = os.path.join(path_out, name + "_cov" + ".png")
             imageio.imwrite(save_path, aux_im)  # generate image file
 
             # save spine results on csv
