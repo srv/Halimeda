@@ -161,6 +161,8 @@ python3 eval_thr.py --run_name 000033 --path_pred ../runs/5/000033/inference_tes
 ```
 ## Tuning of the w_merge and AUC_merge:
 
+#### Weighted merge
+
 **Find the best w_merge weights:**
 
 ```bash
@@ -170,6 +172,27 @@ python merge_weights.py --path_od /mnt/c/Users/haddo/DL_stack/Halimeda/inference
                     --path_merge /mnt/c/Users/haddo/DL_stack/Halimeda/weighted_merge/w_sweep/
 ```
 
+Final evaluation over the different weights used for the merging:
+
+```bash
+
+python eval_weights_merge_swp.py
+```
+In order to customize the folders from where data is gathered and the evaluation instruction, edit the content of the script.
+
+#### AUC merge
+
+**Find the C_thr_od_2 threshold:**
+
+```bash
+
+python get_Cthr_od_2.py --path_od ../inference_val/OD_labels/ \
+    --path_gt ../dataset/all_val/gt/ --path_out ../AUC_merge/cthr0/
+
+```
+
+The script above will generate a xlsx file with the TPs and FPs needed to then estimate the appropriate value for the Cthr_od_2. This estimation is to be done using any sheet app such as Excel or LibreOffice by using the formulas described in the article.
+
 **Find the n thresholds:**
 
 ```bash
@@ -178,3 +201,4 @@ python get_n.py --path_od ../inference_val/OD_labels/ \
     --path_ss ../inference_val/SS/ --path_ss_gt ../dataset/all_val/gt/ --path_out ../AUC_merge/cthr0/ --iter 1
 
 ```
+The script above will generate a xlsx file with the execution's output. The N thresholds cannot be obtained directly from this output. However, within the project folder there is a file called "n_plantilla.xlsx" where the output must be placed and it will return the thresholds to be used.

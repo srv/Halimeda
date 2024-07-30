@@ -52,9 +52,9 @@ def main():
         print("working on:" + list_od[idx])
         
         # LOAD PREDS
-        file_path_od = os.path.join(path_od,list_od[idx])
-        file_path_ss_gt = os.path.join(path_ss_gt,list_ss_gt[idx])
-        file_path_ss = os.path.join(path_ss,list_ss[idx])
+        file_path_od = os.path.join(path_od, list_od[idx])
+        file_path_ss_gt = os.path.join(path_ss_gt, list_ss_gt[idx])
+        file_path_ss = os.path.join(path_ss, list_ss[idx])
         
         # LOAD PREDS
         image_ss_gray = cv2.imread(file_path_ss, cv2.IMREAD_GRAYSCALE)  # read ss image
@@ -64,7 +64,7 @@ def main():
 
         # DELETE INSTANCES WITH CONF < 1
         for i, instance in enumerate(instances_od):
-            if instance[1] < (od_thr/100):
+            if instance[1] < (od_thr / 100):
                 break
         instances_od = instances_od[:i]
 

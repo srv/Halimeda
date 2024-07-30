@@ -47,7 +47,9 @@ ns = parsed_args.ns
 def main():
 
     list_od = natsorted(os.listdir(path_od))
+    print(len(list_od))
     list_ss = natsorted(os.listdir(path_ss))
+    print(len(list_ss))
 
     if  len(list_od) != len(list_ss):
         print("¡PREDS NOT SAME LENGTH!")
@@ -93,7 +95,7 @@ def main():
         ## OD Instance Thresholding
         # Delete OD instances with confidence < 1%
         for i, instance in enumerate(instances_od):
-            if instance[1] < 0.01:
+            if instance[1] < 0.01:  # 0.27 for yolov8
                 instances_od = instances_od[:i]
 
         # Save regions having OD predictions with enough confiddence (Coverage merging section)

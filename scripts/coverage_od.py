@@ -96,6 +96,7 @@ def main():
     cov_grid_list = list()
 
     for file in sorted(os.listdir(path_txt)):
+        # print(path_txt)
         if re.search("\.(txt)$", file):  # if the file is a txt
             name, ext = os.path.splitext(file)
             test_cases.append(name)
@@ -103,7 +104,13 @@ def main():
             file_path = os.path.join(path_txt, file)
             instances = getInstances(file_path)
 
+            # Converting the tuples to list and then sorting them by the confidence. So small confidence instances go first
+            instances = [list(instance) for instance in instances]
+            instances = sorted(instances, key=lambda conf: conf[1])
+
             for i, instance in enumerate(instances):
+                # print('Type is = ', type(instance))
+                # print(instance)
                 box = getBoxFromInst(instance)
                 (left, top, right, bottom) = (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
 

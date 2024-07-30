@@ -84,6 +84,7 @@ for n, id_ in enumerate(gt_list):
     gt[n] = img
 
 grey_flat = grey.flatten()
+print("These are the predictions = ", np.unique(grey_flat))
 gt_flat = gt.flatten()
 gt_flat = np.where(gt_flat > 127, 1, 0)
 zeros = np.count_nonzero(gt_flat == 0)
