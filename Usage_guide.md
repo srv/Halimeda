@@ -132,6 +132,8 @@ For more information on how to reparameterize every step of the algorithm, pleas
 
 ## In Case that you want to retrain the OD model:
 
+### YOLOv5 
+
 ```bash
 cd Halimeda/object_detection/yolov5
 
@@ -149,6 +151,36 @@ python train.py --img 1024 --batch 8 --epochs 200 --data halimeda.yaml --weights
 ```bash
 python3 Halimeda/scripts/eval.py --run_name 000033 --path_pred ../runs/1/000033/inference --path_out ../runs/1/000033/ --path_gt ../data/test/mask --name xxx.py --pred_path /mnt/c/Users/haddo/yolov5/projects/halimeda/final_trainings/yolo_XL/base_3/inference_test/coverage --gt_im_path  /mnt/c/Users/haddo/yolov5/datasets/halimeda/coverage/test/ --gt_label_path /mnt/c/Users/haddo/yolov5/datasets/halimeda/labels/test/ --run_name base_3 --save_path /mnt/c/Users/haddo/yolov5/projects/halimeda/final_trainings/yolo_XL/base_3/inference_test --shape 1024
 ```
+
+### YOLOv8
+
+If ultralytics is not installed yet,
+```bash
+pip install ultralytics
+```
+
+Then, training can be performed using CLI commands: 
+```bash
+yolo train data=halimeda.yaml model=yolov8x.pt epochs=200 imgsz=1024 batch=8 project="projects/halimeda/final_trainings/yolo_XL/" name="base_1" cfg=data/hyps/final/hyp.base.yaml
+```
+
+**Keep in mind:**
+
+- You must modify halimeda.yaml to match the paths to your dataset folder.
+- If you want to train from pretrained ImageNet weights use model=yolov8x.pt, if you want to retrain our model use model=$path_to_model.pt with the corresponding path where you have stored our downloaded model.
+- Change the hyperparameters in data/hyps/final/hyp.base.yaml according to your needs.
+
+
+**Eval command**
+
+Following the same notation as for training, eval can be performed using: 
+```bash
+yolo val model=$path_to_trained_model.pt data=halimeda.yaml batch=1 imgsz=1024
+```
+
+More information about validation parameters can be found in [Ultralytics Guide](https://docs.ultralytics.com/modes/val/)
+
+
 ## In Case that you want to retrain the SS model:
 
 Following, you have an example of calls, substitute in each instruction substitute for your paths and config
