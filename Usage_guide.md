@@ -178,7 +178,7 @@ Following the same notation as for training, eval can be performed using:
 yolo val model=$path_to_trained_model.pt data=halimeda.yaml batch=1 imgsz=1024
 ```
 
-More information about validation parameters can be found in [Ultralytics Guide](https://docs.ultralytics.com/modes/val/)
+More information about validation parameters can be found in [Ultralytics Guide](https://docs.ultralytics.com/modes/val/).
 
 
 ## In Case that you want to retrain the SS model:
