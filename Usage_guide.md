@@ -14,17 +14,31 @@
 #### 2.1.1 Run yolov5 model inference
 
 ```bash
-cd Halimeda/object_detection/yolov5/
+cd Halimeda/object_detection/scripts/
 
-python detect.py --weights $path_to_model.pt \
+python inference.py --weights $path_to_model.pt \
     --project $path_to_your_project_folder --name $results_od_folder --data data/halimeda.yaml \
-    --source $path_to_your_images --conf-thres 0.1 --iou-thres 0.5 \
-    --save-txt --save-conf --imgsz 1024
+    --source $path_to_your_images --conf-thres 0.1 --iou-thres 0.5 --imgsz 1024
 ```
 
 ARGS EXPLAINED:
 
-    $path_to_model.pt: path to OD model downloaded from the link to zenodo
+    $path_to_model.pt: path to YOLOv5 OD model downloaded from the link to zenodo
+    $path_to_your_project_folder: path to your project folder
+    $results_od_folder: inference results will be stored in $path_to_your_project_folder/$results_od_folder path
+    $path_to_your_images: the path containing the images for performing inference.
+
+#### 2.1.1 Run yolov8 model inference
+
+```bash
+cd Halimeda/object_detection/scripts/
+
+python inference_yolov8.py --weights $path_to_model.pt \
+    --project $path_to_your_project_folder --name $results_od_folder --data data/halimeda.yaml \
+    --source $path_to_your_images --conf-thres 0.1 --iou-thres 0.5 --imgsz 1024
+```
+
+    $path_to_model.pt: path to YOLOv8 OD model downloaded from the link to zenodo
     $path_to_your_project_folder: path to your project folder
     $results_od_folder: inference results will be stored in $path_to_your_project_folder/$results_od_folder path
     $path_to_your_images: the path containing the images for performing inference.
